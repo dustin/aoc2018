@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Day3 where
 
 import Control.Monad (guard)
@@ -22,21 +24,23 @@ aclaim = do
 expand :: [Claim] -> [(Int,Int)]
 expand = concatMap (\(Claim _ (x,y) (w,h)) -> [(x',y') | x' <- [x .. x+w-1], y' <-[y .. y+h-1]])
 
+counts :: [Claim] -> Map.Map (Int,Int) Int
+counts = Map.fromListWith (+) . map (\(x,y) -> ((x,y),1)) . expand
+
+parseClaims :: [String] -> Either String [Claim]
+parseClaims = traverse (A.parseOnly aclaim . pack)
+
 part1 :: IO ()
 part1 = do
-  lns <- map pack <$> lines <$> readFile "input/day3"
-  let (Right ls) = traverse (A.parseOnly aclaim) lns
-  print $ length $ Map.filter (>1) $ Map.fromListWith (+) $ map (\(x,y) -> ((x,y),1)) $ expand ls
+  (Right ls) <- parseClaims <$> lines <$> readFile "input/day3"
+  print $ length $ Map.filter (>1) $ counts ls
 
 part2 :: IO ()
 part2 = do
-  lns <- map pack <$> lines <$> readFile "input/day3"
-  let (Right ls) = traverse (A.parseOnly aclaim) lns
-  let counts = Map.fromListWith (+) $ map (\(x,y) -> ((x,y),1)) $ expand ls
-  let a = foldr (\c@(Claim i _ _) o -> let segs = expand [c] in
-                                 if total counts segs == length segs then c
-                                 else o) undefined ls
-  print a
+  (Right ls) <- parseClaims <$> lines <$> readFile "input/day3"
+  let cs = counts ls
+  let a = filter (\c@(Claim i _ _) -> let segs = expand [c] in total cs segs == length segs) ls
+  print $ head a
 
     where
       total :: Map.Map (Int,Int) Int -> [(Int,Int)] -> Int
