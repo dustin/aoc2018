@@ -27,6 +27,8 @@ library:
   dependencies:
     - containers
     - edit-distance
+    - text
+    - attoparsec
 
 executables:
   aoc:
