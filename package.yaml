@@ -29,6 +29,7 @@ library:
     - edit-distance
     - text
     - attoparsec
+    - time
 
 executables:
   aoc:
@@ -52,3 +53,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - aoc
+    - QuickCheck
+    - tasty
+    - tasty-quickcheck
