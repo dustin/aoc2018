@@ -36,12 +36,12 @@ part1 = do
 
 part2 :: IO ()
 part2 = do
-  datas <- filter (`notElem` ['\n']) <$> readFile "input/day5"
+  datas <- react <$> filter (`notElem` ['\n']) <$> readFile "input/day5"
   let chars = Set.fromList (toLower <$> datas)
 
   let m = map (\r -> (r, filter (\c -> toLower c /= r) datas)) (Set.toList chars)
 
-  let mm = map (\(c, i) -> (c, length $ foldrthing i)) m
+  let mm = map (\(c, i) -> (c, length $ react i)) m
 
   let ans  = minimumBy (\a@(_,al) b@(_,bl) -> compare al bl) mm
 
