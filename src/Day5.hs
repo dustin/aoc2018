@@ -5,6 +5,7 @@ module Day5 where
 import qualified Data.Set as Set
 import Data.Char (toUpper, toLower)
 import Data.Foldable (minimumBy)
+import Control.Parallel.Strategies (using, parList, rseq)
 
 chain :: String -> String
 chain [] = []
@@ -17,6 +18,13 @@ chain (x:y:xs)
 
 react :: String -> String
 react s = let c = chain s in if s == c then c else react c
+
+-- from glguy... took me a sec.
+foldrthing :: String -> String
+foldrthing = foldr step ""
+  where
+    step x (y:ys) | x /= y && toUpper x == toUpper y = ys
+    step x ys                                        = x : ys
 
 works :: Bool
 works = react "dabAcCaCBAcCcaDA" == "dabCBAcaDA"
@@ -33,7 +41,7 @@ part2 = do
 
   let m = map (\r -> (r, filter (\c -> toLower c /= r) datas)) (Set.toList chars)
 
-  let mm = map (\(c, i) -> (c, length $ react i)) m
+  let mm = map (\(c, i) -> (c, length $ foldrthing i)) m
 
   let ans  = minimumBy (\a@(_,al) b@(_,bl) -> compare al bl) mm
 
