@@ -30,6 +30,7 @@ library:
     - text
     - attoparsec
     - time
+    - parallel
 
 executables:
   aoc:

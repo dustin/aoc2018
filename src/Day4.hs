@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Day3 where
+module Day4 where
 
 import Control.Applicative ((<|>))
 import qualified Data.Map.Strict as Map
