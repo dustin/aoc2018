@@ -7,6 +7,8 @@ import Data.List (mapAccumL)
 import qualified Data.Tree as Tree
 import Control.Monad (replicateM)
 import Control.Monad.Trans.State (State, evalState, get, put)
+import qualified Data.Attoparsec.Text as A
+import Data.Text (Text, pack)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -52,6 +54,25 @@ readTree' = evalState getTree
           case xxs of
             x:xs -> x <$ put xs
             [] -> error "get1: empty list"
+
+-- Or just parse it directly into the right structure.
+parseTree :: A.Parser (Tree.Tree [Int])
+parseTree = do
+  c <- aNum
+  m <- aNum
+  cs <- replicateM c parseTree
+  ms <- replicateM m aNum
+
+  pure $ Tree.Node ms cs
+
+  where
+    aNum :: A.Parser Int
+    aNum = A.decimal <* A.skipSpace
+
+readInput' :: IO (Tree.Tree [Int])
+readInput' = do
+  (Right l) <- A.parseOnly parseTree <$> pack <$> readFile "input/day8"
+  pure l
 
 part1 :: IO ()
 part1 = print =<< (sum .concat . Tree.flatten) <$> readInput
