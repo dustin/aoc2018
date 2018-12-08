@@ -31,6 +31,7 @@ library:
     - attoparsec
     - time
     - parallel
+    - transformers
 
 executables:
   aoc:

@@ -5,6 +5,8 @@ module Day8 where
 import Debug.Trace (trace)
 import Data.List (mapAccumL)
 import qualified Data.Tree as Tree
+import Control.Monad (replicateM)
+import Control.Monad.Trans.State (State, evalState, get, put)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -31,6 +33,25 @@ readTree l@(c:m:xs) =
   where
     sz :: Tree.Tree [Int] -> Int
     sz (Tree.Node a bs) = foldr (\x o -> o + sz x) (2 + length a) bs
+
+-- Variant of readTree using State monad.  More code, but a lot easier
+-- to understand.
+readTree' :: [Int] -> Tree.Tree [Int]
+readTree' = evalState getTree
+  where getTree :: State [Int] (Tree.Tree [Int])
+        getTree = do
+          n <- get1
+          m <- get1
+          a <- replicateM n getTree
+          b <- replicateM m get1
+          pure (Tree.Node b a)
+
+        get1 :: State [a] a
+        get1 = do
+          xxs <- get
+          case xxs of
+            x:xs -> x <$ put xs
+            [] -> error "get1: empty list"
 
 part1 :: IO ()
 part1 = print =<< (sum .concat . Tree.flatten) <$> readInput
