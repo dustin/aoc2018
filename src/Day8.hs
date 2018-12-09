@@ -9,6 +9,7 @@ import Control.Monad (replicateM)
 import Control.Monad.Trans.State (State, evalState, get, put)
 import qualified Data.Attoparsec.Text as A
 import Data.Text (Text, pack)
+import Data.Foldable (fold)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -76,6 +77,9 @@ readInput' = do
 
 part1 :: IO ()
 part1 = print =<< (sum .concat . Tree.flatten) <$> readInput
+
+part1' :: IO ()
+part1' = print =<< sum.fold <$> readInput'
 
 count :: Tree.Tree [Int] -> Int
 count (Tree.Node xs []) = sum xs
