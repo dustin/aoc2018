@@ -57,6 +57,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - aoc
+    - array
     - QuickCheck
     - tasty
     - tasty-hunit

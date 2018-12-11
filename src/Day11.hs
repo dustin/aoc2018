@@ -3,8 +3,8 @@
 module Day11 where
 
 import Debug.Trace (trace)
-import qualified Data.Array as A
-import qualified Data.Array.Unboxed as UA
+import Data.Ix (Ix)
+import qualified Data.Array.Unboxed as A
 
 import Control.Monad (mapM_)
 import Control.Parallel.Strategies (NFData, parMap, parList, using, rdeepseq)
@@ -45,17 +45,20 @@ largestAtSize sn sz =
                 y + sz - 1 <= 300 ] in
   maximum $ map (\l@(h:_) -> (sum $! powerLevel sn <$> l, h)) cells
 
--- newtype Grid = Grid (A.Array Int (UA.UArray Int Int)) deriving (Show)
-type Grid = ((Int,Int) -> Int)
+newtype Grid = Grid (A.Array Int (A.Array Int Int)) deriving (Show)
+
+gl :: Grid -> (Int,Int) -> Int
+gl g@(Grid g') (x,y) = let ((omn,ox),(imn,ix)) = gbounds g in
+  if y < omn || y > ox || x < imn || x > ix then 0 else g' A.! x A.! y
+
+gbounds :: Grid -> ((Int,Int), (Int,Int))
+gbounds (Grid g) = let o@(l,_) = A.bounds g
+                       i = A.bounds (g A.! l) in (o,i)
 
 mkGrid :: Int -> Int -> Int -> Grid
-mkGrid sn xs ys = let a = mkArry in \(x,y) -> a A.! x UA.! y
-
-  where
-    mkArry :: UA.Array Int (UA.Array Int Int)
-    mkArry = UA.array (1,xs) $ map (\x -> (x, UA.array (1,ys) $
-                                              map (\y -> (y, powerLevel sn (x,y))) [1..ys]))
-             [1..xs]
+mkGrid sn xs ys = Grid $ A.array (1,ys) $ map (\y -> (y, A.array (1,xs) $
+                                                        map (\x -> (x, powerLevel sn (x,y))) [1..xs]))
+                  [1..ys]
 
 part2 :: IO ()
 part2 = do
@@ -68,7 +71,7 @@ part2b = do
   print $ maximum (map (\sz -> (largestAtSize' sz , sz)) [1..18] `using` parList rdeepseq)
 
   where
-    g = mkGrid 7139 300 300
+    g = gl $ mkGrid 7139 300 300
 
     largestAtSize' :: Int -> (Int, (Int,Int))
     largestAtSize' sz =
@@ -80,37 +83,42 @@ part2b = do
         maximum $ map (\l@(h:_) -> (sum $! g <$> l, h)) cells
 
 -- https://en.wikipedia.org/wiki/Summed-area_table
-mkSumAreaTable :: Int -> Grid
-mkSumAreaTable sn = let a = mkArry in \(x,y) -> a UA.! x UA.! y
+mkSumAreaTable :: Grid -> ((Int,Int) -> Int)
+mkSumAreaTable g = gl (Grid mkArry)
 
-  where g = mkGrid sn 300 300
-        mkArry :: UA.Array Int (UA.Array Int Int)
-        mkArry = let a = UA.array (1,300) $
-                         mp (\x -> (x, UA.array (1,300) $
-                                        mp (\y ->
-                                               (y, g (x,y)
-                                                   + subSum a (x,y-1)
-                                                   + subSum a (x-1, y)
-                                                   - subSum a (x-1, y-1))) [1..300]))
-                         [1..300] in a
+  where
+        mkArry :: A.Array Int (A.Array Int Int)
+        mkArry = let (ob@(omin,omax),ib@(imin,imax)) = gbounds g
+                     a = A.array ob $
+                         map (\y -> (y, A.array ib $
+                                        map (\x ->
+                                                (x, gl g (x,y)
+                                                    + subSum a (x,   y-1)
+                                                    + subSum a (x-1, y)
+                                                    - subSum a (x-1, y-1))) [imin..imax]))
+                         [omin..omax] in a
 
-        mp :: NFData b => (a -> b) -> [a] -> [b]
-        mp = parMap rdeepseq
-
-        subSum :: (UA.Array Int (UA.Array Int Int)) -> (Int,Int) -> Int
+        subSum :: (A.Array Int (A.Array Int Int)) -> (Int,Int) -> Int
         subSum _ (0,_) = 0
         subSum _ (_,0) = 0
-        subSum a (x,y) = a UA.! x UA.! y
+        subSum a (x,y) = a A.! y A.! x
 
--- Using a sum area table
+sumIn :: ((Int,Int) -> Int) -> (Int,Int) -> (Int,Int) -> Int
+sumIn g (lx,ly) (hx,hy) = let d = g (hx, hy)
+                              b = g (hx, ly-1)
+                              c = g (lx-1, hy)
+                              a = g (lx-1, ly-1) in
+                            d - b - c + a
+
+-- Using a sum area table (229,61,16)
 part2c :: IO ()
 part2c = do
   print $ maximum $ parMap rdeepseq (\sz -> (largestAtSize' sz, sz)) [1..300]
 
-  where g = mkSumAreaTable 7139
+  where g = mkSumAreaTable (mkGrid 7139 300 300)
 
         suma :: Int -> (Int,Int) -> Int
-        suma sz (x,y) = g (x+sz-1, y+sz-1) - g (x+sz-1, y) - g (x, y+sz-1) + g (x,y)
+        suma sz (x,y) = sumIn g (x,y) (x+sz-1,y+sz-1)
 
         largestAtSize' :: Int -> (Int, (Int,Int))
         largestAtSize' sz =
