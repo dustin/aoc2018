@@ -33,7 +33,7 @@ getInput = A.parseOnly (parseVec `A.sepBy` A.char '\n') . pack <$> readFile "inp
 
 -- Move a vector to where it should be after n seconds
 vecMove :: Int -> Vec -> Vec
-vecMove by (Vec (x,y) v@(vx,vy)) = Vec (x + (vx * by), y + (vy*by)) v
+vecMove by (Vec (x,y) v@(vx,vy)) = Vec (x + (vx*by), y + (vy*by)) v
 
 -- Translate a vector by a given x and y value
 vecTrans :: (Int,Int) -> Vec -> Vec

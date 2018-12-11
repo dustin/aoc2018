@@ -6,6 +6,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
 import Day10 (findMin)
+import Day11 (findMax)
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [
@@ -17,6 +18,11 @@ testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (f
 prop_min :: (NonEmptyList Int) -> Bool
 prop_min (NonEmpty xs) = let n = findMin id $ xs in
                            and . (\l -> zipWith (>=) l $ tail l) . takeWhile (/= n) $ xs
+
+-- Every value before the min value should be less than the max value.
+prop_max :: (NonEmptyList Int) -> Bool
+prop_max (NonEmpty xs) = let n = findMax id $ xs in
+                           and . (\l -> zipWith (<=) l $ tail l) . takeWhile (/= n) $ xs
 
 -- Verify findMin ≠ minimum by ensuring there's a small uptick and
 -- then still yet lower value at the end of the list.
@@ -30,6 +36,8 @@ tests = [
   testGroup "findMin" testFindMin,
 
   localOption (QC.QuickCheckTests 10000) $ testProperty "findMin" prop_min,
+  localOption (QC.QuickCheckTests 10000) $ testProperty "findMax" prop_max,
+
   testProperty "findMin is not minimum" prop_findMinNotMin
   ]
 
