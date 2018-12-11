@@ -68,7 +68,7 @@ findMin f (x:xs) = go xs x
 part1 :: IO ()
 part1 = do
   (Right vs) <- getInput
-  let n = findMin (\n -> let vs' = originate (vecMove n <$> vs)
-                             (_,(w,h)) = bounds vs' in w*h) [1..100000]
-  print $ n
+  let vss = map (\n -> let vs' = originate (vecMove n <$> vs) in (n, bounds vs', vs')) [1..100000]
+  let (n,_,vs') = findMin (\(_,b,_) -> b) vss
+  print n
   drawVecs $ vecMove n <$> vs
