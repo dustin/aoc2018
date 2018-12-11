@@ -2,6 +2,9 @@
 
 module Day11 where
 
+import qualified Data.Array as A
+import qualified Data.Array.Unboxed as UA
+
 import Control.Monad (mapM_)
 import Control.Parallel.Strategies (parList, using, rdeepseq)
 
@@ -41,7 +44,36 @@ largestAtSize sn sz =
                 y + sz - 1 <= 300 ] in
   maximum $ map (\l@(h:_) -> (sum $! powerLevel sn <$> l, h)) cells
 
+-- newtype Grid = Grid (A.Array Int (UA.UArray Int Int)) deriving (Show)
+type Grid = ((Int,Int) -> Int)
+
+mkGrid :: Int -> Int -> Int -> Grid
+mkGrid sn xs ys = let a = mkArry in \(x,y) -> a A.! x UA.! y
+
+  where
+    mkArry :: A.Array Int (UA.Array Int Int)
+    mkArry = A.array (1,xs) $ map (\x -> (x, UA.array (1,ys) $
+                                             map (\y -> (y, powerLevel sn (x,y))) [1..ys]))
+             [1..xs]
+
 part2 :: IO ()
 part2 = do
   let sn = 7139
-  print $ maximum (map (\sz -> (largestAtSize sn sz, sz)) [1..300] `using` parList rdeepseq)
+  print $ maximum (map (\sz -> (largestAtSize sn sz, sz)) [1..18] `using` parList rdeepseq)
+
+-- Using an array instead.
+part2b :: IO ()
+part2b = do
+  print $ maximum (map (\sz -> (largestAtSize' sz, sz)) [1..18] `using` parList rdeepseq)
+
+  where
+    g = mkGrid 7139 300 300
+
+    largestAtSize' :: Int -> (Int, (Int,Int))
+    largestAtSize' sz =
+      let cells = [grouping' sz (x,y) |
+                   x <- [1.. 300],
+                   y <- [1.. 300],
+                   x + sz - 1 <= 300,
+                   y + sz - 1 <= 300 ] in
+        maximum $ map (\l@(h:_) -> (sum $! g <$> l, h)) cells

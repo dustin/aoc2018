@@ -33,6 +33,7 @@ library:
     - parallel
     - transformers
     - extra
+    - array
 
 executables:
   aoc:
