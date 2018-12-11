@@ -29,7 +29,7 @@ parseVec = do
   where num = A.skipSpace *> A.signed A.decimal <* A.skipSpace
 
 getInput :: IO (Either String [Vec])
-getInput = A.parseOnly (parseVec `A.sepBy` (A.char '\n'))<$> pack <$> readFile "input/day10"
+getInput = A.parseOnly (parseVec `A.sepBy` A.char '\n') . pack <$> readFile "input/day10"
 
 -- Move a vector to where it should be after n seconds
 vecMove :: Int -> Vec -> Vec
@@ -54,7 +54,7 @@ bounds vs = ((minimum xs, minimum ys), (maximum xs, maximum ys))
 drawVecs :: [Vec] -> IO ()
 drawVecs vs = let vs' = originate vs
                   bs@((minx,miny), (maxx,maxy)) = bounds vs'
-                  m = Map.fromList $ [((x,y),' ') | x <- [0..maxx], y <- [0..maxy]]
+                  m = Map.fromList [((x,y),' ') | x <- [0..maxx], y <- [0..maxy]]
                   mm = chunksOf (maxx+1) $ map snd $ sortBy (comparing (snd . fst)) $ Map.toList $ Map.union (Map.fromList $ map (\(Vec p _) -> (p,'#')) vs') m in
                 mapM_ putStrLn mm
 
