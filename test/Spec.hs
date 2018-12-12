@@ -8,7 +8,7 @@ import Test.Tasty.QuickCheck as QC
 import qualified Data.Array.Unboxed as A
 
 import Day10 (findMin)
-import Day11 (Grid(..), findMax, mkSumAreaTable, sumIn)
+import Day11 (Grid(..), mkSumAreaTable, sumIn)
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [
@@ -42,6 +42,16 @@ prop_min (NonEmpty xs) = let n = findMin id $ xs in
 prop_max :: (NonEmptyList Int) -> Bool
 prop_max (NonEmpty xs) = let n = findMax id $ xs in
                            and . (\l -> zipWith (<=) l $ tail l) . takeWhile (/= n) $ xs
+
+-- I wrote this, but ended up not using it.  Figured since I have a
+-- test, I'll leave it here.
+findMax :: Ord b => (a -> b) -> [a] -> a
+findMax f (x:xs) = go xs x
+  where go [] r = r
+        go (x':xs') r
+          | f x' < f r = r
+          | otherwise = go xs' x'
+
 
 -- Verify findMin ≠ minimum by ensuring there's a small uptick and
 -- then still yet lower value at the end of the list.

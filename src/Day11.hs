@@ -15,30 +15,19 @@ powerLevel sn (r,c) = let rid = r + 10
                           cell = st + sn
                           pl = (rid * cell) `div` 100 `mod` 10 in
                         pl - 5
-
-grouping :: (Int,Int) -> [(Int,Int)]
-grouping (x,y) = [(x',y') | x' <- [x.. x + 2], y' <- [y .. y+2]]
-
 part1 :: IO ()
 part1 = do
   let sn = 7139
-  let cells = [grouping (x,y) | x <- [1.. 300 -2], y <- [1.. 300 -2]]
+  let cells = [grouping 3 (x,y) | x <- [1.. 300 -2], y <- [1.. 300 -2]]
   let mapped = map (\l@(h:_) -> (sum $ powerLevel sn <$> l, h)) cells
   print $ maximum mapped
 
-findMax :: Ord b => (a -> b) -> [a] -> a
-findMax f (x:xs) = go xs x
-  where go [] r = r
-        go (x':xs') r
-          | f x' < f r = r
-          | otherwise = go xs' x'
-
-grouping' :: Int -> (Int,Int) -> [(Int,Int)]
-grouping' sz (x,y) = [(x',y') | x' <- [x.. x + sz-1], y' <- [y .. y+sz-1]]
+grouping :: Int -> (Int,Int) -> [(Int,Int)]
+grouping sz (x,y) = [(x',y') | x' <- [x.. x + sz-1], y' <- [y .. y+sz-1]]
 
 largestAtSize :: Int -> Int -> (Int, (Int,Int))
 largestAtSize sn sz =
-  let cells = [grouping' sz (x,y) |
+  let cells = [grouping sz (x,y) |
                 x <- [1.. 300],
                 y <- [1.. 300],
                 x + sz - 1 <= 300,
@@ -77,7 +66,7 @@ part2b = do
 
     largestAtSize' :: Int -> (Int, (Int,Int))
     largestAtSize' sz =
-      let cells = [grouping' sz (x,y) |
+      let cells = [grouping sz (x,y) |
                    x <- [1.. 300],
                    y <- [1.. 300],
                    x + sz - 1 <= 300,
