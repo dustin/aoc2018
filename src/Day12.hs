@@ -9,6 +9,7 @@ import Data.Text (Text, pack)
 import Control.Monad (replicateM, mapM_)
 import Control.Applicative ((<|>))
 import Data.Array.Unboxed as Ar
+import Data.List (foldl')
 
 {-
 initial state: #..#.#..##......###...###
@@ -79,15 +80,18 @@ parseInput = do
 
       pure $ Transformer pots tn
 
-getInput :: IO (Either String Input)
-getInput = A.parseOnly parseInput . pack <$> readFile "input/day12"
+getInput :: IO Input
+getInput = do
+  (Right (Input i ts)) <- A.parseOnly parseInput . pack <$> readFile "input/day12"
+  pure $ Input i (filter (\(Transformer _ dst) -> dst == Plant) ts)
 
 stateSum :: Pots -> Int
 stateSum (Pots a) = sum $ fst <$> (filter snd $ Ar.assocs a)
 
 applyAll :: Pots -> [Transformer] -> Pots
-applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2] in
-                          Pots $ Ar.array (fst . minimum $ nl, fst . maximum $ nl) nl
+applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2]
+                            nb = foldl' (\(l',h') x -> (min l' (fst x), max h' (fst x))) (l+2,h-2) nl in
+                          Pots $ Ar.array nb nl
 
   where
     (l,h) = Ar.bounds ps
@@ -104,18 +108,19 @@ applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2] in
               | ps == tmatch = dst
               | otherwise = go ps ts
 
+-- expect 2140
 part1 :: IO ()
 part1 = do
-  (Right (Input istate ts)) <- getInput
+  (Input istate ts) <- getInput
 
-  let ns = foldl (\o _ -> applyAll o ts) istate [1..20]
+  let ns = foldl' (\o _ -> applyAll o ts) istate [1..20]
 
   print $ stateSum ns
 
 part2 :: IO ()
 part2 = do
-  (Right (Input istate ts)) <- getInput
+  (Input istate ts) <- getInput
 
-  let ns = foldl (\o _ -> applyAll o ts) istate [1..50000000000]
+  let ns = foldl' (\o _ -> applyAll o ts) istate [1..50000000000]
 
   print $ stateSum ns
