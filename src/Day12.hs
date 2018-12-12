@@ -10,6 +10,7 @@ import Control.Monad (replicateM, mapM_)
 import Control.Applicative ((<|>))
 import Data.Array.Unboxed as Ar
 import Data.List (foldl')
+import Data.Maybe (fromMaybe)
 
 type Pot = Bool
 
@@ -61,17 +62,11 @@ applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2]
   where
     (l,h) = Ar.bounds ps
     step :: Int -> [(Int,Bool)] -> [(Int,Bool)]
-    step x o = if go seg ts then (x, True):o else o
+    step x o = if fromMaybe False $ lookup seg ts then (x, True):o else o
 
       where seg = [at n | n <- [x-2 .. x+2]]
             at :: Int -> Pot
             at n = if n < l || n > h then False else (ps Ar.! n)
-
-            go :: [Pot] -> [Transformer] -> Pot
-            go _ [] = False
-            go ps (t@(tmatch, dst):ts)
-              | ps == tmatch = dst
-              | otherwise = go ps ts
 
 -- expect 2140
 part1 :: IO ()
