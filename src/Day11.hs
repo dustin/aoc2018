@@ -34,22 +34,17 @@ largestAtSize sn sz =
                 y + sz - 1 <= 300 ] in
   maximum $ map (\l@(h:_) -> (sum $! powerLevel sn <$> l, h)) cells
 
-newtype Grid = Grid (A.Array Int (A.Array Int Int)) deriving (Show)
+newtype Grid = Grid (A.Array (Int,Int) Int) deriving (Show)
 
 gl :: Grid -> (Int,Int) -> Int
-gl g@(Grid g') = let bs = gbounds g in checked bs
+gl g@(Grid g') = let bs = A.bounds g' in checked bs
 
-  where checked ((omn,ox),(imn,ix)) (x,y) =
-          if y < omn || y > ox || x < imn || x > ix then 0 else g' A.! x A.! y
-
-gbounds :: Grid -> ((Int,Int), (Int,Int))
-gbounds (Grid g) = let o@(l,_) = A.bounds g
-                       i = A.bounds (g A.! l) in (o,i)
+  where checked ((xmn,ymn),(xmx,ymx)) (x,y) =
+          if y < ymn || y > ymx || x < xmn || x > xmx then 0 else g' A.! (x,y)
 
 mkGrid :: Int -> Int -> Int -> Grid
-mkGrid sn xs ys = Grid $ A.array (1,ys) $ map (\y -> (y, A.array (1,xs) $
-                                                        map (\x -> (x, powerLevel sn (x,y))) [1..xs]))
-                  [1..ys]
+mkGrid sn xs ys = Grid $ A.array ((1,1),(xs,ys)) $
+                  [((x,y), powerLevel sn (x,y)) | x <- [1..xs], y <- [1..ys]]
 
 part2 :: IO ()
 part2 = do
@@ -75,24 +70,21 @@ part2b = do
 
 -- https://en.wikipedia.org/wiki/Summed-area_table
 mkSumAreaTable :: Grid -> ((Int,Int) -> Int)
-mkSumAreaTable g = gl (Grid mkArry)
+mkSumAreaTable g@(Grid g') = gl (Grid mkArry)
 
   where
-        mkArry :: A.Array Int (A.Array Int Int)
-        mkArry = let (ob@(omin,omax),ib@(imin,imax)) = gbounds g
-                     a = A.array ob $
-                         map (\y -> (y, A.array ib $
-                                        map (\x ->
-                                                (x, gl g (x,y)
-                                                    + subSum a (x,   y-1)
-                                                    + subSum a (x-1, y)
-                                                    - subSum a (x-1, y-1))) [imin..imax]))
-                         [omin..omax] in a
+        mkArry :: A.Array (Int,Int) Int
+        mkArry = let b@((xmin,ymin),(xmax,ymax)) = A.bounds g'
+                     a = A.array b [((x,y), gl g (x,y)
+                                            + subSum a (x, y-1)
+                                            + subSum a (x-1, y)
+                                            - subSum a (x-1, y-1))
+                                   | x <- [xmin..xmax], y <- [ymin..ymax]] in a
 
-        subSum :: (A.Array Int (A.Array Int Int)) -> (Int,Int) -> Int
+        subSum :: (A.Array (Int,Int) Int) -> (Int,Int) -> Int
         subSum _ (0,_) = 0
         subSum _ (_,0) = 0
-        subSum a (x,y) = a A.! y A.! x
+        subSum a (x,y) = a A.! (x,y)
 
 sumIn :: ((Int,Int) -> Int) -> (Int,Int) -> (Int,Int) -> Int
 sumIn g (lx,ly) (hx,hy) = let d = g (hx, hy)
@@ -123,7 +115,7 @@ maxSeeded sn = maximum $ parMap rdeepseq (\sz -> let (sm,pos) = largestAtSize' s
 
 allBounds :: IO ()
 allBounds = do
-  let alls = parMap rdeepseq largestI [0..8192]
+  let alls = parMap rdeepseq largestI [0..8]
   putStrLn $ "lowest: " <> show (minimum alls)
   putStrLn $ "highest: " <> show (maximum alls)
 

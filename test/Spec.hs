@@ -25,8 +25,7 @@ msquare  = [[31,  2,  4, 33,  5, 36],
             [1,  35, 34,  3, 32,  6]]
 
 msqarry :: Grid
-msqarry = Grid $ A.array (1, 6) $ zip [1..] $ map (\r -> A.array (1,6) $
-                                                         zip [1..] r) msquare
+msqarry = Grid $ A.array ((1,1),(6,6)) [((x,y), msquare !! (y-1) !! (x-1)) | x <- [1..6], y <- [1..6]]
 
 -- (3,4) -> (5, 5)  --  (3,4)  (5,4)   (3,5) (5,5)
 testSAT :: TestTree
