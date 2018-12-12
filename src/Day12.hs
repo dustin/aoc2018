@@ -29,8 +29,7 @@ instance Show Transformer where
   show (Transformer pots dest) = concatMap show pots <> " → " <> show dest
 
 parsePot :: A.Parser Pot
-parsePot = A.char '.' *> pure False <|>
-           A.char '#' *> pure True
+parsePot = False <$ A.char '.' <|> True <$ A.char '#'
 
 parseInput :: A.Parser Input
 parseInput = do
