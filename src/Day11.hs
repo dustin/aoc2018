@@ -114,10 +114,12 @@ sumIn g (lx,ly) (hx,hy) = let d = g (hx, hy)
 
 -- Using a sum area table (229,61,16)
 part2c :: IO ()
-part2c = do
-  print $ maximum $ parMap rdeepseq (\sz -> (largestAtSize' sz, sz)) [1..300]
+part2c = print $ maxSeeded 7139
 
-  where g = mkSumAreaTable (mkGrid 7139 300 300)
+maxSeeded :: Int -> (Int,(Int,Int),Int)
+maxSeeded sn = maximum $ parMap rdeepseq (\sz -> let (sm,pos) = largestAtSize' sz in (sm, pos, sz)) [1..300]
+
+  where g = mkSumAreaTable (mkGrid sn 300 300)
 
         suma :: Int -> (Int,Int) -> Int
         suma sz (x,y) = sumIn g (x,y) (x+sz-1,y+sz-1)
@@ -128,3 +130,15 @@ part2c = do
                        x <- [1.. 301 - sz],
                        y <- [1.. 301 - sz]] in
             maximum $ map (\l -> (suma sz l, l)) cells
+
+
+allBounds :: IO ()
+allBounds = do
+  let alls = parMap rdeepseq largestI [0..8192]
+  putStrLn $ "lowest: " <> show (minimum alls)
+  putStrLn $ "highest: " <> show (maximum alls)
+
+  where
+    largestI :: Int -> (Int,Int,(Int,Int))
+    largestI i = let (_,at,sz) =  maxSeeded i in
+                   trace (show (sz,i,at)) (sz,i,at)
