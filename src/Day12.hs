@@ -11,25 +11,6 @@ import Control.Applicative ((<|>))
 import Data.Array.Unboxed as Ar
 import Data.List (foldl')
 
-{-
-initial state: #..#.#..##......###...###
-
-...## => #
-..#.. => #
-.#... => #
-.#.#. => #
-.#.## => #
-.##.. => #
-.#### => #
-#.#.# => #
-#.### => #
-##.#. => #
-##.## => #
-###.. => #
-###.# => #
-####. => #
--}
-
 type Pot = Bool
 
 data Pots = Pots (Ar.UArray Int Bool)
