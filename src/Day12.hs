@@ -86,10 +86,13 @@ part1 = do
 
   print $ stateSum ns
 
+-- expect 1900000000384
 part2 :: IO ()
 part2 = do
   (Input istate ts) <- getInput
 
-  let ns = foldl' (\o _ -> applyAll o ts) istate [1..50000000000]
-
-  print $ stateSum ns
+  -- Stabilizes after 100 and then the whole thing just shifts one to
+  -- the right.  Can compute the answer pretty easily.
+  let st@(Pots ps) = foldl' (\o _ -> applyAll o ts) istate [1..100]
+  let ns = (map (toEnum.fst) $ filter snd (Ar.assocs ps)) :: [Integer]
+  print $ sum (map (+ (50000000000-100)) ns)
