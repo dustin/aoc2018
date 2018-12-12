@@ -23,10 +23,7 @@ data Input = Input Pots [Transformer]
 instance Show Input where
   show (Input ps ts) = show ps <> " " <> show ts
 
-data Transformer = Transformer [Pot] Pot
-
-instance Show Transformer where
-  show (Transformer pots dest) = concatMap show pots <> " → " <> show dest
+type Transformer = ([Pot], Pot)
 
 parsePot :: A.Parser Pot
 parsePot = False <$ A.char '.' <|> True <$ A.char '#'
@@ -46,12 +43,12 @@ parseInput = do
       pots <- replicateM 5 parsePot
       tn <- " => " *> parsePot <* A.many' A.space
 
-      pure $ Transformer pots tn
+      pure $ (pots, tn)
 
 getInput :: IO Input
 getInput = do
   (Right (Input i ts)) <- A.parseOnly parseInput . pack <$> readFile "input/day12"
-  pure $ Input i (filter (\(Transformer _ dst) -> dst) ts)
+  pure $ Input i (filter snd ts)
 
 stateSum :: Pots -> Int
 stateSum (Pots a) = sum $ fst <$> (filter snd $ Ar.assocs a)
@@ -72,7 +69,7 @@ applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2]
 
             go :: [Pot] -> [Transformer] -> Pot
             go _ [] = False
-            go ps (t@(Transformer tmatch dst):ts)
+            go ps (t@(tmatch, dst):ts)
               | ps == tmatch = dst
               | otherwise = go ps ts
 
