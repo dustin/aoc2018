@@ -48,8 +48,10 @@ largestAtSize sn sz =
 newtype Grid = Grid (A.Array Int (A.Array Int Int)) deriving (Show)
 
 gl :: Grid -> (Int,Int) -> Int
-gl g@(Grid g') (x,y) = let ((omn,ox),(imn,ix)) = gbounds g in
-  if y < omn || y > ox || x < imn || x > ix then 0 else g' A.! x A.! y
+gl g@(Grid g') = let bs = gbounds g in checked bs
+
+  where checked ((omn,ox),(imn,ix)) (x,y) =
+          if y < omn || y > ox || x < imn || x > ix then 0 else g' A.! x A.! y
 
 gbounds :: Grid -> ((Int,Int), (Int,Int))
 gbounds (Grid g) = let o@(l,_) = A.bounds g
