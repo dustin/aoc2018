@@ -130,7 +130,7 @@ moveCarts w@(World m carts) =
       where
         go [] r = Right r
         go (c:xs) r = let c' = moveCart w c in
-                        if pos c `elem` (map pos r <> map pos xs) then
+                        if c `elem` (r <> xs) then
                           Left (pos c)
                         else go xs (c':r)
 
@@ -155,8 +155,8 @@ moveCarts2 w@(World m carts) =
       where
         go [] r = r
         go (c:xs) r = let c' = moveCart w c in
-                        if pos c' `elem` (map pos r <> map pos xs) then
-                          go (filter (\x -> pos x /= pos c') xs) (filter (\x -> pos x /= pos c') r)
+                        if c' `elem` (r <> xs) then
+                          go (filter (/= c') xs) (filter (/= c') r)
                         else go xs (c':r)
 
 reduceCarts :: World -> (Int,Int)
