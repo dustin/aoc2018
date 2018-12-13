@@ -161,17 +161,7 @@ part2 = do
                           go (filter (/= c') xs) (filter (/= c') r)
                         else go xs (c':r)
 
-removeCarts :: World -> IO ()
-removeCarts w@(World m carts) = do
-  mapM_ (\(Cart (x,y) _ _) -> do
-            putStr $ "\ESC[" <> show (y + 2) <> ";" <> show (x + 1) <> "H"
-            putStr $ show (m Map.! (x,y))) carts
-
-addCarts :: [Cart] -> IO ()
-addCarts = mapM_ (\c@(Cart (x,y) _ _) ->
-                    putStr $ mconcat ["\ESC[", show (y + 2), ";", show (x + 1), "H",
-                                      "\ESC[41;1m", show c, "\ESC[0m"])
-
+-- Part 2, but animated.  Also, it doesn't stop.
 part2a :: IO ()
 part2a = do
   w <- getInput
@@ -185,11 +175,22 @@ part2a = do
     go w@(World m carts) = do
       removeCarts w
       let w'@(World _ carts') = moveCarts w
-      addCarts carts'
-      -- putStr $ show w
-      threadDelay (50000 `div` length carts')
+      addCarts w'
       hFlush stdout
+      threadDelay (50000 `div` length carts')
       go w'
+
+    removeCarts :: World -> IO ()
+    removeCarts w@(World m carts) = do
+      mapM_ (\(Cart (x,y) _ _) -> do
+                putStr $ "\ESC[" <> show (y + 2) <> ";" <> show (x + 1) <> "H"
+                putStr $ show (m Map.! (x,y))) carts
+
+    addCarts :: World -> IO ()
+    addCarts (World _ carts) =
+      mapM_ (\c@(Cart (x,y) _ _) ->
+                putStr $ mconcat ["\ESC[", show (y + 2), ";", show (x + 1), "H",
+                                   "\ESC[41;1m", show c, "\ESC[0m"]) carts
 
     moveCarts :: World -> World
     moveCarts w@(World m carts) = World m $ go (sort carts) []
