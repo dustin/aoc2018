@@ -24,6 +24,16 @@ turn Straight = id
 turn TurnLeft = pred'
 turn TurnRight = succ'
 
+curve :: Char -> Dir -> Dir
+curve '/' N = E
+curve '/' E = N
+curve '/' W = S
+curve '/' S = W
+curve '\\' N = W
+curve '\\' E = S
+curve '\\' W = N
+curve '\\' S = E
+
 data NextTurn = TurnLeft | Straight | TurnRight deriving (Show, Bounded, Enum, Eq)
 
 -- A circular succ
@@ -59,8 +69,8 @@ data World = World (Map.Map (Int,Int) Segment) [Cart]
 
 instance Show World where
   show (World m carts) = let m' = Map.union (Map.fromList $ map (\(Cart p d _) -> (p,s d)) carts) (show <$> m)
-                             mx = maximum $ (fst <$> Map.keys m')
-                             my = maximum $ (snd <$> Map.keys m') in
+                             mx = maximum (fst <$> Map.keys m')
+                             my = maximum (snd <$> Map.keys m') in
                            intercalate "\n" (map (\y -> concatMap (\x -> m' Map.! (x,y)) [0..mx]) [0..my])
     where s N = "^"
           s E = ">"
@@ -107,61 +117,43 @@ moveCart (World m _)  c@(Cart pos dir nextTurn) =
       LeftRight -> Cart nextPos dir nextTurn
       Curve c -> Cart nextPos (curve c dir) nextTurn
 
-curve :: Char -> Dir -> Dir
-curve '/' N = E
-curve '/' E = N
-curve '/' W = S
-curve '/' S = W
-curve '\\' N = W
-curve '\\' E = S
-curve '\\' W = N
-curve '\\' S = E
-
-moveCarts :: World -> Either (Int,Int) World
-moveCarts w@(World m carts) =
-  World m <$> moveCarts' (sort carts)
-
-  where
-    moveCarts' :: [Cart] -> Either (Int,Int) [Cart]
-    moveCarts' cs = go cs []
-      where
-        go [] r = Right r
-        go (c:xs) r = let c'@(Cart pos _ _) = moveCart w c in
-                        if c' `elem` (r <> xs) then Left pos
-                        else go xs (c':r)
-
-findFail :: (Either a b -> Either a b) -> b -> a
-findFail f v = go (Right v)
-  where go = either id (go . f . Right)
+findFail :: (Either a b -> Either a b) -> Either a b -> a
+findFail f = either id (findFail f . f . Right)
 
 -- (102,114)
 part1 :: IO ()
 part1 = do
   w <- getInput
-  print $ findFail (moveCarts =<<) w
-
-moveCarts2 :: World -> World
-moveCarts2 w@(World m carts) =
-  World m $ moveCarts' (sort carts)
+  print $ findFail (moveCarts =<<) (Right w)
 
   where
-    moveCarts' :: [Cart] -> [Cart]
-    moveCarts' cs = go cs []
-      where
-        go [] r = r
-        go (c:xs) r = let c' = moveCart w c in
-                        if c' `elem` (r <> xs) then
-                          go (filter (/= c') xs) (filter (/= c') r)
-                        else go xs (c':r)
+    moveCarts :: World -> Either (Int,Int) World
+    moveCarts w@(World m carts) =
+      World m <$> go (sort carts) []
 
-reduceCarts :: World -> (Int,Int)
-reduceCarts w = let w'@(World _ c) = moveCarts2 w in
-                  case c of
-                    [Cart p _ _] -> p
-                    otherwise -> reduceCarts w'
+      where
+        go :: [Cart] -> [Cart] -> Either (Int,Int) [Cart]
+        go [] r = Right r
+        go (c:xs) r = let c'@(Cart pos _ _) = moveCart w c in
+                        if c' `elem` (r <> xs) then Left pos
+                        else go xs (c':r)
 
 -- (146,87)
 part2 :: IO ()
 part2 = do
   w <- getInput
-  print $ reduceCarts w
+  print $ findFail (moveCarts =<<) (Right w)
+
+  where
+    moveCarts :: World -> Either (Int,Int) World
+    moveCarts w@(World m carts) = World m <$> go (sort carts) []
+
+      where
+        go :: [Cart] -> [Cart] -> Either (Int,Int) [Cart]
+        go [c] [] = let (Cart p _ _) = moveCart w c in Left p
+        go [] r = Right r
+        go (c:xs) r = let c' = moveCart w c in
+                        if c' `elem` (r <> xs) then
+                          go (filter (/= c') xs) (filter (/= c') r)
+                        else go xs (c':r)
+
