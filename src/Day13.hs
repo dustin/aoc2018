@@ -2,14 +2,9 @@
 
 module Day13 where
 
-import Debug.Trace (trace)
-import qualified Data.Attoparsec.Text as A
 import qualified Data.Map.Strict as Map
-import Data.Text (Text, pack)
-import Control.Monad (replicateM, mapM_)
 import Control.Applicative ((<|>))
-import Data.List (sort, foldl', intercalate)
-import Data.Maybe (isJust, fromJust)
+import Data.List (sort, intercalate)
 
 data Dir = N | E | S | W deriving (Bounded, Enum, Show, Eq)
 
