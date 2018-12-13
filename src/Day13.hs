@@ -117,9 +117,6 @@ curve '\\' E = S
 curve '\\' W = N
 curve '\\' S = E
 
-pos :: Cart -> (Int,Int)
-pos (Cart p _ _) = p
-
 moveCarts :: World -> Either (Int,Int) World
 moveCarts w@(World m carts) =
   World m <$> moveCarts' (sort carts)
@@ -129,9 +126,8 @@ moveCarts w@(World m carts) =
     moveCarts' cs = go cs []
       where
         go [] r = Right r
-        go (c:xs) r = let c' = moveCart w c in
-                        if c `elem` (r <> xs) then
-                          Left (pos c)
+        go (c:xs) r = let c'@(Cart pos _ _) = moveCart w c in
+                        if c' `elem` (r <> xs) then Left pos
                         else go xs (c':r)
 
 findCrash :: World -> (Int,Int)
