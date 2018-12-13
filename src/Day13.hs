@@ -13,27 +13,6 @@ import Data.Maybe (isJust, fromJust)
 
 data Dir = N | E | S | W deriving (Bounded, Enum, Show, Eq)
 
-move :: Dir -> (Int,Int) -> (Int,Int)
-move N (x,y) = (x,y-1)
-move S (x,y) = (x,y+1)
-move E (x,y) = (x+1,y)
-move W (x,y) = (x-1,y)
-
-turn :: NextTurn -> Dir -> Dir
-turn Straight = id
-turn TurnLeft = pred'
-turn TurnRight = succ'
-
-curve :: Char -> Dir -> Dir
-curve '/' N = E
-curve '/' E = N
-curve '/' W = S
-curve '/' S = W
-curve '\\' N = W
-curve '\\' E = S
-curve '\\' W = N
-curve '\\' S = E
-
 data NextTurn = TurnLeft | Straight | TurnRight deriving (Show, Bounded, Enum, Eq)
 
 -- A circular succ
@@ -116,6 +95,28 @@ moveCart (World m _)  c@(Cart pos dir nextTurn) =
       UpDown -> Cart nextPos dir nextTurn
       LeftRight -> Cart nextPos dir nextTurn
       Curve c -> Cart nextPos (curve c dir) nextTurn
+
+  where
+    move :: Dir -> (Int,Int) -> (Int,Int)
+    move N (x,y) = (x,y-1)
+    move S (x,y) = (x,y+1)
+    move E (x,y) = (x+1,y)
+    move W (x,y) = (x-1,y)
+
+    curve :: Char -> Dir -> Dir
+    curve '/' N = E
+    curve '/' E = N
+    curve '/' W = S
+    curve '/' S = W
+    curve '\\' N = W
+    curve '\\' E = S
+    curve '\\' W = N
+    curve '\\' S = E
+
+    turn :: NextTurn -> Dir -> Dir
+    turn Straight = id
+    turn TurnLeft = pred'
+    turn TurnRight = succ'
 
 findFail :: (Either a b -> Either a b) -> Either a b -> a
 findFail f = either id (findFail f . f . Right)
