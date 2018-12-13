@@ -2,9 +2,11 @@
 
 module Day13 where
 
-import qualified Data.Map.Strict as Map
 import Control.Applicative ((<|>))
+import Control.Concurrent (threadDelay)
 import Data.List (sort, intercalate)
+import System.IO (hFlush, stdout)
+import qualified Data.Map.Strict as Map
 
 data Dir = N | E | S | W deriving (Bounded, Enum, Show, Eq)
 
@@ -22,7 +24,13 @@ pred' a
   | a == minBound = maxBound
   | otherwise = pred a
 
-data Cart = Cart (Int,Int) Dir NextTurn deriving(Show)
+data Cart = Cart (Int,Int) Dir NextTurn
+
+instance Show Cart where
+  show (Cart _ N _) = "^"
+  show (Cart _ S _) = "v"
+  show (Cart _ E _) = ">"
+  show (Cart _ W _) = "<"
 
 instance Eq Cart where
   (Cart a _ _) == (Cart b _ _) = a == b
@@ -42,14 +50,14 @@ instance Show Segment where
 data World = World (Map.Map (Int,Int) Segment) [Cart]
 
 instance Show World where
-  show (World m carts) = let m' = Map.union (Map.fromList $ map (\(Cart p d _) -> (p,s d)) carts) (show <$> m)
+  show (World m carts) = let m' = Map.union (Map.fromList $ map (\c@(Cart p _ _) -> (p,r c)) carts) (show <$> m)
                              mx = maximum (fst <$> Map.keys m')
                              my = maximum (snd <$> Map.keys m') in
                            intercalate "\n" (map (\y -> concatMap (\x -> m' Map.! (x,y)) [0..mx]) [0..my])
-    where s N = "^"
-          s E = ">"
-          s W = "<"
-          s S = "v"
+
+    where
+      r :: Show a => a -> String
+      r a = "\ESC[41;1m" <> show a <> "\ESC[0m"
 
 parseInput :: [String] -> World
 parseInput lns =
@@ -153,3 +161,43 @@ part2 = do
                           go (filter (/= c') xs) (filter (/= c') r)
                         else go xs (c':r)
 
+removeCarts :: World -> IO ()
+removeCarts w@(World m carts) = do
+  mapM_ (\(Cart (x,y) _ _) -> do
+            putStr $ "\ESC[" <> show (y + 2) <> ";" <> show (x + 1) <> "H"
+            putStr $ show (m Map.! (x,y))) carts
+
+addCarts :: [Cart] -> IO ()
+addCarts = mapM_ (\c@(Cart (x,y) _ _) ->
+                    putStr $ mconcat ["\ESC[", show (y + 2), ";", show (x + 1), "H",
+                                      "\ESC[41;1m", show c, "\ESC[0m"])
+
+part2a :: IO ()
+part2a = do
+  w <- getInput
+  putStr ("\ESC[2J" <> show w)
+
+  go w
+  pure ()
+
+  where
+    go :: World -> IO ()
+    go w@(World m carts) = do
+      removeCarts w
+      let w'@(World _ carts') = moveCarts w
+      addCarts carts'
+      -- putStr $ show w
+      threadDelay (50000 `div` length carts')
+      hFlush stdout
+      go w'
+
+    moveCarts :: World -> World
+    moveCarts w@(World m carts) = World m $ go (sort carts) []
+
+      where
+        go :: [Cart] -> [Cart] -> [Cart]
+        go [] r = r
+        go (c:xs) r = let c' = moveCart w c in
+                        if c' `elem` (r <> xs) then
+                          go (filter (/= c') xs) (filter (/= c') r)
+                        else go xs (c':r)
