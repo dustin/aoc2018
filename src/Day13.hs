@@ -130,16 +130,15 @@ moveCarts w@(World m carts) =
                         if c' `elem` (r <> xs) then Left pos
                         else go xs (c':r)
 
-findCrash :: World -> (Int,Int)
-findCrash w = case moveCarts w of
-                Left x -> x
-                Right w' -> findCrash w'
+findFail :: (Either a b -> Either a b) -> b -> a
+findFail f v = go (Right v)
+  where go = either id (go . f . Right)
 
 -- (102,114)
 part1 :: IO ()
 part1 = do
   w <- getInput
-  print $ findCrash w
+  print $ findFail (moveCarts =<<) w
 
 moveCarts2 :: World -> World
 moveCarts2 w@(World m carts) =
