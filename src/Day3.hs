@@ -2,12 +2,12 @@
 
 module Day3 where
 
-import Control.Monad (guard)
-import qualified Data.Map.Strict as Map
+import           Control.Monad        (guard)
+import qualified Data.Map.Strict      as Map
 
-import qualified Data.Text.Encoding as E
 import qualified Data.Attoparsec.Text as A
-import Data.Text (Text, pack, unpack)
+import           Data.Text            (Text, pack, unpack)
+import qualified Data.Text.Encoding   as E
 
 data Claim = Claim Int (Int,Int) (Int,Int) deriving (Show)
 

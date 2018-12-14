@@ -2,15 +2,15 @@
 
 module Day10 where
 
-import Debug.Trace (trace)
+import           Control.Monad        (mapM_)
 import qualified Data.Attoparsec.Text as A
-import qualified Data.Map.Strict as Map
-import Data.Text (Text, pack)
-import Data.Either (either)
-import Data.List (sortBy)
-import Data.Ord (comparing)
-import Control.Monad (mapM_)
-import Data.List.Extra (chunksOf)
+import           Data.Either          (either)
+import           Data.List            (sortBy)
+import           Data.List.Extra      (chunksOf)
+import qualified Data.Map.Strict      as Map
+import           Data.Ord             (comparing)
+import           Data.Text            (Text, pack)
+import           Debug.Trace          (trace)
 
 -- position=< 9,  1> velocity=< 0,  2>
 

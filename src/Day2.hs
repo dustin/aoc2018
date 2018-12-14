@@ -1,10 +1,10 @@
 module Day2 where
 
-import Control.Monad (guard)
-import Data.List (sortOn)
-import Text.EditDistance (levenshteinDistance, defaultEditCosts)
-import qualified Data.Set as Set
-import qualified Data.Map.Strict as Map
+import           Control.Monad     (guard)
+import           Data.List         (sortOn)
+import qualified Data.Map.Strict   as Map
+import qualified Data.Set          as Set
+import           Text.EditDistance (defaultEditCosts, levenshteinDistance)
 
 checksum :: [String] -> Int
 checksum lns =

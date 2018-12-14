@@ -2,12 +2,13 @@
 
 module Day11 where
 
-import Debug.Trace (trace)
-import Data.Ix (Ix)
-import qualified Data.Array.Unboxed as A
+import qualified Data.Array.Unboxed          as A
+import           Data.Ix                     (Ix)
+import           Debug.Trace                 (trace)
 
-import Control.Monad (mapM_)
-import Control.Parallel.Strategies (NFData, parMap, parList, using, rdeepseq)
+import           Control.Monad               (mapM_)
+import           Control.Parallel.Strategies (NFData, parList, parMap, rdeepseq,
+                                              using)
 
 powerLevel :: Int -> (Int, Int) -> Int
 powerLevel sn (r,c) = let rid = r + 10

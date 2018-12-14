@@ -2,15 +2,15 @@
 
 module Day12 where
 
-import Debug.Trace (trace)
+import           Control.Applicative  ((<|>))
+import           Control.Monad        (mapM_, replicateM)
+import           Data.Array.Unboxed   as Ar
 import qualified Data.Attoparsec.Text as A
-import qualified Data.Map.Strict as Map
-import Data.Text (Text, pack)
-import Control.Monad (replicateM, mapM_)
-import Control.Applicative ((<|>))
-import Data.Array.Unboxed as Ar
-import Data.List (foldl')
-import Data.Maybe (fromMaybe)
+import           Data.List            (foldl')
+import qualified Data.Map.Strict      as Map
+import           Data.Maybe           (fromMaybe)
+import           Data.Text            (Text, pack)
+import           Debug.Trace          (trace)
 
 type Pot = Bool
 

@@ -2,10 +2,10 @@
 
 module Day5 where
 
-import qualified Data.Set as Set
-import Data.Char (toUpper, toLower)
-import Data.Foldable (minimumBy)
-import Control.Parallel.Strategies (using, parList, rseq)
+import           Control.Parallel.Strategies (parList, rseq, using)
+import           Data.Char                   (toLower, toUpper)
+import           Data.Foldable               (minimumBy)
+import qualified Data.Set                    as Set
 
 chain :: String -> String
 chain [] = []
@@ -24,7 +24,7 @@ foldrthing :: String -> String
 foldrthing = foldr step ""
   where
     step x (y:ys) | x /= y && toUpper x == toUpper y = ys
-    step x ys                                        = x : ys
+    step x ys     = x : ys
 
 works :: Bool
 works = react "dabAcCaCBAcCcaDA" == "dabCBAcaDA"

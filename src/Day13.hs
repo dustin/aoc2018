@@ -2,11 +2,11 @@
 
 module Day13 where
 
-import Control.Applicative ((<|>))
-import Control.Concurrent (threadDelay)
-import Data.List (sort, intercalate)
-import System.IO (hFlush, stdout)
-import qualified Data.Map.Strict as Map
+import           Control.Applicative ((<|>))
+import           Control.Concurrent  (threadDelay)
+import           Data.List           (intercalate, sort)
+import qualified Data.Map.Strict     as Map
+import           System.IO           (hFlush, stdout)
 
 data Dir = N | E | S | W deriving (Bounded, Enum, Show, Eq)
 
@@ -41,11 +41,11 @@ instance Ord Cart where
 data Segment = UpDown | LeftRight | Intersection | Curve Char | Empty deriving (Eq)
 
 instance Show Segment where
-  show UpDown = "'"
-  show LeftRight = "-"
+  show UpDown       = "'"
+  show LeftRight    = "-"
   show Intersection = "+"
-  show (Curve c) = [c]
-  show _ = " "
+  show (Curve c)    = [c]
+  show _            = " "
 
 data World = World (Map.Map (Int,Int) Segment) [Cart]
 
@@ -66,16 +66,16 @@ parseInput lns =
   (sort $ concatMap (\(y,r) -> foldr (\(x,c) o -> maybe o (:o) (cart c (x,y))) [] $ zip [0..] r) $ zip [0..] lns)
 
   where
-    seg '|' = UpDown
-    seg 'v' = UpDown
-    seg '^' = UpDown
-    seg '-' = LeftRight
-    seg '>' = LeftRight
-    seg '<' = LeftRight
-    seg '+' = Intersection
-    seg '/' = Curve '/'
+    seg '|'  = UpDown
+    seg 'v'  = UpDown
+    seg '^'  = UpDown
+    seg '-'  = LeftRight
+    seg '>'  = LeftRight
+    seg '<'  = LeftRight
+    seg '+'  = Intersection
+    seg '/'  = Curve '/'
     seg '\\' = Curve '\\'
-    seg _ = Empty
+    seg _    = Empty
 
     cart :: Char -> (Int,Int) -> Maybe Cart
     cart c pos = Cart pos <$> dir c <*> Just TurnLeft
@@ -84,7 +84,7 @@ parseInput lns =
     dir '^' = Just N
     dir 'v' = Just S
     dir '<' = Just W
-    dir _ = Nothing
+    dir _   = Nothing
 
 getInput :: IO World
 getInput = parseInput . lines <$> readFile "input/day13"
@@ -95,9 +95,9 @@ moveCart (World m _)  c@(Cart pos dir nextTurn) =
   let nextPos = move dir pos in
     case m Map.! nextPos of
       Intersection -> Cart nextPos (turn nextTurn dir) (succ' nextTurn)
-      UpDown -> Cart nextPos dir nextTurn
-      LeftRight -> Cart nextPos dir nextTurn
-      Curve c -> Cart nextPos (curve c dir) nextTurn
+      UpDown       -> Cart nextPos dir nextTurn
+      LeftRight    -> Cart nextPos dir nextTurn
+      Curve c      -> Cart nextPos (curve c dir) nextTurn
 
   where
     move :: Dir -> (Int,Int) -> (Int,Int)
@@ -107,18 +107,18 @@ moveCart (World m _)  c@(Cart pos dir nextTurn) =
     move W (x,y) = (x-1,y)
 
     curve :: Char -> Dir -> Dir
-    curve '/' N = E
-    curve '/' E = N
-    curve '/' W = S
-    curve '/' S = W
+    curve '/' N  = E
+    curve '/' E  = N
+    curve '/' W  = S
+    curve '/' S  = W
     curve '\\' N = W
     curve '\\' E = S
     curve '\\' W = N
     curve '\\' S = E
 
     turn :: NextTurn -> Dir -> Dir
-    turn Straight = id
-    turn TurnLeft = pred'
+    turn Straight  = id
+    turn TurnLeft  = pred'
     turn TurnRight = succ'
 
 findFail :: (Either a b -> Either a b) -> Either a b -> a
@@ -181,7 +181,7 @@ part2a = do
       go w'
 
     removeCarts :: World -> IO ()
-    removeCarts w@(World m carts) = do
+    removeCarts w@(World m carts) =
       mapM_ (\(Cart (x,y) _ _) -> do
                 putStr $ "\ESC[" <> show (y + 2) <> ";" <> show (x + 1) <> "H"
                 putStr $ show (m Map.! (x,y))) carts

@@ -2,14 +2,14 @@
 
 module Day4 where
 
-import Control.Applicative ((<|>))
-import qualified Data.Map.Strict as Map
+import           Control.Applicative  ((<|>))
+import qualified Data.Map.Strict      as Map
 
-import Data.Time
-import Data.List (sort, foldl')
-import qualified Data.Text.Encoding as E
 import qualified Data.Attoparsec.Text as A
-import Data.Text (Text, pack, unpack)
+import           Data.List            (foldl', sort)
+import           Data.Text            (Text, pack, unpack)
+import qualified Data.Text.Encoding   as E
+import           Data.Time
 
 {-
 -- not a leap year...
@@ -79,10 +79,10 @@ sleepMins :: GuardInfo -> [(TS,TS)] -- (Asleep, Awake)
 sleepMins (GuardInfo ts _ evs) = awake ts [] evs
 
   where
-    awake _ x [] = x
+    awake _ x []                  = x
     awake ts as ((t,Asleep):rest) = asleep t as rest
 
-    asleep _ x [] = x
+    asleep _ x []                 = x
     asleep ts rs ((t,Awake):rest) = awake t ((ts,t):rs) rest
 
 sleepTime :: GuardInfo -> Int

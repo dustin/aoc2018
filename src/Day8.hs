@@ -2,14 +2,14 @@
 
 module Day8 where
 
-import Debug.Trace (trace)
-import Data.List (mapAccumL)
-import qualified Data.Tree as Tree
-import Control.Monad (replicateM)
-import Control.Monad.Trans.State (State, evalState, get, put)
-import qualified Data.Attoparsec.Text as A
-import Data.Text (Text, pack)
-import Data.Foldable (fold)
+import           Control.Monad             (replicateM)
+import           Control.Monad.Trans.State (State, evalState, get, put)
+import qualified Data.Attoparsec.Text      as A
+import           Data.Foldable             (fold)
+import           Data.List                 (mapAccumL)
+import           Data.Text                 (Text, pack)
+import qualified Data.Tree                 as Tree
+import           Debug.Trace               (trace)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -54,7 +54,7 @@ readTree' = evalState getTree
           xxs <- get
           case xxs of
             x:xs -> x <$ put xs
-            [] -> error "get1: empty list"
+            []   -> error "get1: empty list"
 
 -- Or just parse it directly into the right structure.
 parseTree :: A.Parser (Tree.Tree [Int])

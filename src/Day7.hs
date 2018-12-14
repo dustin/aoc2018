@@ -2,15 +2,15 @@
 
 module Day7 where
 
-import Data.Semigroup ((<>))
+import           Data.Semigroup       ((<>))
 
-import Data.List (sort, (\\))
-import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
-import qualified Data.Graph as G
-import qualified Data.Text.Encoding as E
 import qualified Data.Attoparsec.Text as A
-import Data.Text (Text, pack, unpack)
+import qualified Data.Graph           as G
+import           Data.List            (sort, (\\))
+import qualified Data.Map.Strict      as Map
+import qualified Data.Set             as Set
+import           Data.Text            (Text, pack, unpack)
+import qualified Data.Text.Encoding   as E
 
 -- B requires A
 data Requirement = Requirement Char Char deriving (Show)
@@ -46,9 +46,9 @@ cost :: Char -> Int
 cost = (subtract 4) . fromEnum
 
 state :: Task -> State
-state (Task _ 0 _) = Done
+state (Task _ 0 _)  = Done
 state (Task _ _ []) = Ready
-state _ = Blocked
+state _             = Blocked
 
 -- Update tasks, remembering work that's been done and unblocking any
 -- tasks that have completed.

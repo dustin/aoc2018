@@ -2,16 +2,16 @@
 
 module Day9 where
 
-import Debug.Trace (trace)
-import Data.List (foldl')
+import qualified Data.IntMap   as IntMap
+import           Data.List     (foldl')
 import qualified Data.Sequence as Seq
-import qualified Data.IntMap as IntMap
+import           Debug.Trace   (trace)
 
 insertClockwise :: [Int] -> Int -> [Int]
 insertClockwise xs m = m : rot2 xs
 
   where rot2 = rot . rot
-        rot [x] = [x]
+        rot [x]    = [x]
         rot (x:xs) = xs <> [x]
 
 play :: Int -> Int -> Int

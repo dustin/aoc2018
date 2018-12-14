@@ -4,7 +4,7 @@ import qualified Data.Set as Set
 
 pn :: String -> Int
 pn ('+':xs) = read xs
-pn l = read l
+pn l        = read l
 
 part1 :: IO ()
 part1 = print =<< sum . map pn . lines <$> readFile "input/day1"

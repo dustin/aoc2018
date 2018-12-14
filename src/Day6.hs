@@ -2,10 +2,10 @@
 
 module Day6 where
 
-import Data.Semigroup ((<>))
-import Data.Foldable (minimumBy)
-import Data.Ord (comparing)
+import           Data.Foldable   (minimumBy)
 import qualified Data.Map.Strict as Map
+import           Data.Ord        (comparing)
+import           Data.Semigroup  ((<>))
 
 -- Manhattan distance
 mdist :: (Int,Int) -> (Int,Int) -> Int
