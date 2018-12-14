@@ -2,15 +2,15 @@
 
 module Day14 where
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), Alternative(..))
 import Data.Char (digitToInt)
 import Data.Foldable (toList)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromJust)
 import qualified Data.Sequence as Seq
 
-wtfseq :: Int -> Int -> (Seq.Seq Int -> Maybe a) -> a
-wtfseq a b f = fromJust $ go (Seq.fromList [a,b]) (0,1)
+wtelfseq :: Alternative f => Int -> Int -> (Seq.Seq Int -> f a) -> f a
+wtelfseq a b f = go (Seq.fromList [a,b]) (0,1)
 
   where go s (e1,e2) = f s <|> let s1 = (Seq.index s e1)
                                    s2 = (Seq.index s e2)
@@ -23,13 +23,13 @@ wtfseq a b f = fromJust $ go (Seq.fromList [a,b]) (0,1)
 
 -- 8176111038
 part1 :: IO ()
-part1 = putStrLn (concatMap show $ wtelf 3 7 890691)
+part1 = putStrLn (concatMap show . fromJust $ wtelf 3 7 890691)
 
   where
-    wtelf :: Int -> Int -> Int -> [Int]
-    wtelf a b n = wtfseq a b (\s -> if length s > n + 10
-                                    then Just (toList . Seq.take 10 . Seq.drop n $ s)
-                                    else  Nothing)
+    wtelf :: Int -> Int -> Int -> Maybe [Int]
+    wtelf a b n = wtelfseq a b (\s -> if length s > n + 10
+                                      then Just (toList . Seq.take 10 . Seq.drop n $ s)
+                                      else Nothing)
 
 
 -- 20225578
@@ -37,8 +37,8 @@ part2 :: IO ()
 part2 = print $ wtelf 3 7 $ map digitToInt "890691"
 
   where
-    wtelf :: Int -> Int -> [Int] -> Int
-    wtelf a b m = wtfseq a b (match m)
+    wtelf :: Int -> Int -> [Int] -> Maybe Int
+    wtelf a b m = wtelfseq a b (match m)
 
     match :: [Int] -> Seq.Seq Int -> Maybe Int
     match m s = let base = Seq.length s - (length m + 2)
