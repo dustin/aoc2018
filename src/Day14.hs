@@ -2,12 +2,12 @@
 
 module Day14 where
 
-import Control.Applicative ((<|>), Alternative(..))
-import Data.Char (digitToInt)
-import Data.Foldable (toList)
-import Data.List (isPrefixOf)
-import Data.Maybe (fromJust)
-import qualified Data.Sequence as Seq
+import           Control.Applicative (Alternative (..), (<|>))
+import           Data.Char           (digitToInt)
+import           Data.Foldable       (toList)
+import           Data.List           (isPrefixOf)
+import           Data.Maybe          (fromJust)
+import qualified Data.Sequence       as Seq
 
 wtelfseq :: Alternative f => Int -> Int -> (Seq.Seq Int -> f a) -> f a
 wtelfseq a b f = go (Seq.fromList [a,b]) (0,1)
