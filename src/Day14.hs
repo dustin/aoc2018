@@ -12,8 +12,8 @@ import qualified Data.Sequence       as Seq
 wtelfseq :: Alternative f => Int -> Int -> (Seq.Seq Int -> f a) -> f a
 wtelfseq a b f = go (Seq.fromList [a,b]) (0,1)
 
-  where go s (e1,e2) = f s <|> let s1 = (Seq.index s e1)
-                                   s2 = (Seq.index s e2)
+  where go s (e1,e2) = f s <|> let s1 = Seq.index s e1
+                                   s2 = Seq.index s e2
                                    (d1,d2) = (s1 + s2) `divMod` 10
                                    toAdd = Seq.fromList $ if d1 == 0 then [d2] else [d1, d2]
                                    s' = s <> toAdd
@@ -47,6 +47,6 @@ part2 = print $ wtelf 3 7 $ map digitToInt "890691"
 
     at :: Int -> [Int] -> [Int] -> Maybe Int
     at _ _ [] = Nothing
-    at b m s = if isPrefixOf m s
+    at b m s = if m `isPrefixOf` s
                then Just b
                else at (b+1) m (tail s)
