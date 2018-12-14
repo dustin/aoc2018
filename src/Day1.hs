@@ -6,11 +6,12 @@ pn :: String -> Int
 pn ('+':xs) = read xs
 pn l        = read l
 
+-- 576
 part1 :: IO ()
 part1 = print =<< sum . map pn . lines <$> readFile "input/day1"
 
 part2h :: [Int] -> Int
-part2h = folder (Set.empty) 0 . cycle
+part2h = folder mempty 0 . cycle
   where
     folder :: Set.Set Int -> Int -> [Int] -> Int
     folder s i (x:xs)
@@ -19,5 +20,6 @@ part2h = folder (Set.empty) 0 . cycle
 
       where ix = i + x
 
+-- 77674
 part2 :: IO ()
-part2 =  print =<< part2h <$> map pn . lines <$> readFile "input/day1"
+part2 =  print =<< (part2h . map pn . lines <$> readFile "input/day1")

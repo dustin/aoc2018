@@ -44,7 +44,7 @@ gl g@(Grid g') = let bs = A.bounds g' in checked bs
           if y < ymn || y > ymx || x < xmn || x > xmx then 0 else g' A.! (x,y)
 
 mkGrid :: Int -> Int -> Int -> Grid
-mkGrid sn xs ys = Grid $ A.array ((1,1),(xs,ys)) $
+mkGrid sn xs ys = Grid $ A.array ((1,1),(xs,ys))
                   [((x,y), powerLevel sn (x,y)) | x <- [1..xs], y <- [1..ys]]
 
 part2 :: IO ()
@@ -54,8 +54,7 @@ part2 = do
 
 -- Using an array instead.
 part2b :: IO ()
-part2b = do
-  print $ maximum (map (\sz -> (largestAtSize' sz , sz)) [1..18] `using` parList rdeepseq)
+part2b = print $ maximum (map (\sz -> (largestAtSize' sz , sz)) [1..18] `using` parList rdeepseq)
 
   where
     g = gl $ mkGrid 7139 300 300
@@ -82,7 +81,7 @@ mkSumAreaTable g@(Grid g') = gl (Grid mkArry)
                                             - subSum a (x-1, y-1))
                                    | x <- [xmin..xmax], y <- [ymin..ymax]] in a
 
-        subSum :: (A.Array (Int,Int) Int) -> (Int,Int) -> Int
+        subSum :: A.Array (Int,Int) Int -> (Int,Int) -> Int
         subSum _ (0,_) = 0
         subSum _ (_,0) = 0
         subSum a (x,y) = a A.! (x,y)

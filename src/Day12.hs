@@ -14,7 +14,7 @@ import           Debug.Trace          (trace)
 
 type Pot = Bool
 
-data Pots = Pots (Ar.UArray Int Bool)
+newtype Pots = Pots (Ar.UArray Int Bool)
 
 instance Show Pots where
   show (Pots ps) = show (Ar.bounds ps) <> " => " <> map (\x -> if x then '#' else '.') (Ar.elems ps)
@@ -44,7 +44,7 @@ parseInput = do
       pots <- replicateM 5 parsePot
       tn <- " => " *> parsePot <* A.many' A.space
 
-      pure $ (pots, tn)
+      pure (pots, tn)
 
 getInput :: IO Input
 getInput = do
@@ -52,7 +52,7 @@ getInput = do
   pure $ Input i (filter snd ts)
 
 stateSum :: Pots -> Int
-stateSum (Pots a) = sum $ fst <$> (filter snd $ Ar.assocs a)
+stateSum (Pots a) = sum $ fst <$> filter snd (Ar.assocs a)
 
 applyAll :: Pots -> [Transformer] -> Pots
 applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2]
@@ -66,7 +66,7 @@ applyAll (Pots ps) ts = let nl = foldr step [] [l-2..h+2]
 
       where seg = [at n | n <- [x-2 .. x+2]]
             at :: Int -> Pot
-            at n = if n < l || n > h then False else (ps Ar.! n)
+            at n = if n < l || n > h then False else ps Ar.! n
 
 -- expect 2140
 part1 :: IO ()
