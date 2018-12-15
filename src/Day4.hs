@@ -10,6 +10,7 @@ import           Data.List            (foldl', sort)
 import           Data.Text            (Text, pack, unpack)
 import qualified Data.Text.Encoding   as E
 import           Data.Time
+import           Data.Functor         (($>))
 
 {-
 -- not a leap year...
@@ -47,8 +48,8 @@ anEvent :: A.Parser Event
 anEvent = Event <$> timestamp <*> deet
 
   where deet :: A.Parser Deet
-        deet = "wakes up" *> pure Awake
-               <|> "falls asleep" *> pure Asleep
+        deet = ("wakes up" $> Awake)
+               <|> ("falls asleep" $> Asleep)
                <|> Begins <$> ("Guard #" *> A.decimal <* " begins shift")
 
         timestamp :: A.Parser TS
@@ -71,7 +72,7 @@ grp = go []
   where
     go :: [GuardInfo] -> [Event] -> [GuardInfo]
     go gi [] = gi
-    go gi ((Event ts (Begins x)):xs) = go ((GuardInfo ts x []) : gi) xs
+    go gi (Event ts (Begins x):xs) = go ((GuardInfo ts x []) : gi) xs
     go ((GuardInfo gts gid evs):rest) (Event ts dt:xs) = go ((GuardInfo gts gid (evs <> pure (ts,dt))) : rest) xs
     go _ _ = undefined
 

@@ -5,7 +5,7 @@ module Day10 where
 import           Control.Monad        (mapM_)
 import qualified Data.Attoparsec.Text as A
 import           Data.Either          (either)
-import           Data.List            (sortBy)
+import           Data.List            (sortBy, sortOn)
 import           Data.List.Extra      (chunksOf)
 import qualified Data.Map.Strict      as Map
 import           Data.Ord             (comparing)
@@ -55,7 +55,7 @@ drawVecs :: [Vec] -> IO ()
 drawVecs vs = let vs' = originate vs
                   bs@((minx,miny), (maxx,maxy)) = bounds vs'
                   m = Map.fromList [((x,y),' ') | x <- [0..maxx], y <- [0..maxy]]
-                  mm = chunksOf (maxx+1) $ map snd $ sortBy (comparing (snd . fst)) $ Map.toList $ Map.union (Map.fromList $ map (\(Vec p _) -> (p,'#')) vs') m in
+                  mm = chunksOf (maxx+1) $ map snd $ sortOn (snd . fst) $ Map.toList $ Map.union (Map.fromList $ map (\(Vec p _) -> (p,'#')) vs') m in
                 mapM_ putStrLn mm
 
 findMin :: Ord b => (a -> b) -> [a] -> a
