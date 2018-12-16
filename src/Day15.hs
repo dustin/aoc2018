@@ -1,0 +1,264 @@
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
+
+module Day15 where
+
+import Debug.Trace (trace)
+import qualified Data.Map.Strict     as Map
+import qualified Data.Set as Set
+import Data.List (sortOn, sortBy, intercalate, foldl')
+import Data.Ord (comparing)
+import Control.Parallel.Strategies (parMap, rdeepseq)
+import Control.Applicative ((<|>))
+import Data.Tuple (swap)
+import Data.Function (on)
+import Data.Foldable (minimumBy)
+import Data.Maybe (listToMaybe, catMaybes)
+
+
+data Thing = Wall | Open | Elf Int | Goblin Int
+
+instance Show Thing where
+  show Wall = "#"
+  show Open = "."
+  show (Elf x) = "E(" <> show x <> ")"
+  show (Goblin x) = "G(" <> show x <> ")"
+
+isOpen :: Thing -> Bool
+isOpen Open = True
+isOpen _ = False
+
+isElf :: Thing -> Bool
+isElf (Elf _) = True
+isElf _ = False
+
+isGoblin :: Thing -> Bool
+isGoblin (Goblin _) = True
+isGoblin _ = False
+
+isEnemy :: Thing -> Thing -> Bool
+isEnemy a b = (isElf a && isGoblin b) || (isGoblin a && isElf b)
+
+hp :: Thing -> Int
+hp (Elf x) = x
+hp (Goblin x) = x
+hp x = error ("no HP for " <> show x)
+
+hit :: Thing -> Thing
+hit (Elf x)
+  | x > 3 = Elf $ x - 3
+  | otherwise = Open
+hit (Goblin x)
+  | x > 3 = Goblin $ x - 3
+  | otherwise = Open
+hit x = error ("can't hit " <> show x)
+
+data World = World (Map.Map (Int,Int) Thing)
+
+instance Show World where
+  show (World m) =intercalate "\n" $ map row [0..my]
+
+    where
+      mx = maximum (fst <$> Map.keys m)
+      my = maximum (snd <$> Map.keys m)
+      row y = concatMap (\x -> (take 1 . show $ m Map.! (x,y))) [0..mx] <> hps
+        where hps = let obs = filter (\o -> (isElf o || isGoblin o)) $ map (\x -> m Map.! (x,y)) [0..mx] in
+                      if null obs then ""
+                      else " " <> intercalate ", " (map show obs)
+
+parseInput :: [String] -> World
+parseInput lns = World $ Map.fromList $ concatMap (\(y,r) -> map (\(x,c) -> ((x,y),p c)) $ zip [0..] r) $ zip [0..] lns
+
+  where p :: Char -> Thing
+        p 'E' = Elf 200
+        p 'G' = Goblin 200
+        p '.' = Open
+        p _ = Wall
+
+readingOrder :: (Int,Int) -> (Int,Int) -> Ordering
+readingOrder = comparing swap
+
+readingSort :: [(Int,Int)] -> [(Int,Int)]
+readingSort = sortBy readingOrder
+
+ofType :: World -> (Thing -> Bool) -> [(Int,Int)]
+ofType (World m) f = readingSort . Map.keys . Map.filter f $ m
+
+elves :: World -> [(Int,Int)]
+elves w = ofType w isElf
+
+goblins :: World -> [(Int,Int)]
+goblins w = ofType w isGoblin
+
+openSpace :: World -> Set.Set (Int,Int)
+openSpace (World m) = Map.keysSet . Map.filter isOpen $ m
+
+around :: (Int,Int) -> [(Int,Int)]
+around (x,y) = [(x,y-1), (x-1,y), (x+1,y), (x,y+1)]
+
+at :: World -> (Int,Int) -> Thing
+at w@(World m) p = m Map.! p
+
+mdist :: (Int,Int) -> (Int,Int) -> Int
+mdist (x1,y1) (x2,y2) = abs (x1-x2) + abs (y1-y2)
+
+targets :: World -> (Int,Int) -> [(Int,Int)]
+-- targets _ (23,8) = [(24,10)]
+targets w@(World m) pos = let enemies = ofType w (isEnemy (m Map.! pos))
+                              open = openSpace w
+                              tset = (openSpace w) `Set.intersection` (Set.fromList $ concatMap around enemies) in
+                            sortBy (comparing (mdist pos)) (Set.toList tset)
+
+players :: World -> [(Int,Int)]
+players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
+
+bestMove :: World -> (Int,Int) -> Maybe (Int,Int)
+bestMove w p
+  | not $ null $ adjacentEnemies w p = Nothing
+  | otherwise = (listToMaybe $ best Nothing $ targetPaths w p)
+
+  where best :: Maybe ((Int,Int), [(Int,Int)]) -> [((Int,Int),Maybe [(Int,Int)])] -> [(Int,Int)]
+        best Nothing [] = []        -- no moves
+        best (Just (_, os)) [] = os -- no new moves
+        best x ((_, Nothing):xs) = best x xs  -- not a valid path
+        best Nothing ((d,Just ps):xs) = best (Just (d,ps)) xs  -- Any valid path is a good start
+        best o@(Just (op, os)) ((d, Just ps):xs)
+          | length os > length ps = best (Just (d,ps)) xs -- current is longer, take the new
+          | length os < length ps = best o xs -- current is shorter, keep it
+          | readingOrder (sub2 d p) (sub2 op p) == LT = best (Just (d,ps)) xs -- better destination
+          | otherwise = best o xs
+
+        sub2 (a,b) (c,d) = (a-c, b-d)
+
+targetPaths :: World -> (Int,Int) -> [((Int,Int), Maybe [(Int,Int)])]
+targetPaths w p = parMap rdeepseq (\d -> (d,pathTo w p d)) $ targets w p
+
+-- Path from the point where a thing is, to where it wants to go (without obstruction)
+-- focusing on (23,8)
+pathTo :: World -> (Int,Int) -> (Int,Int) -> Maybe [(Int,Int)]
+pathTo w f t
+  | f `adjacentTo` t = Just [t]
+  | otherwise = -- trace (" finding path to " <> show t) $
+                let m = go [(t,0)] mempty mempty in
+                  if null m then Nothing
+                  else sequenceA $ resolve f m
+
+  where
+    p1 `adjacentTo` p2 = p1 `elem` around p2
+    ospac = openSpace w
+    possible p = Set.toList $ Set.fromList (around p) `Set.intersection` ospac
+
+    resolve :: (Int,Int) -> Map.Map (Int,Int) Int -> [Maybe (Int,Int)]
+    resolve p m
+      | p == t = []
+      | null next = [Nothing]
+      | otherwise = let np = best next in
+                      (Just np) : resolve np m
+
+        where
+          next :: [(Int,Int)]
+          next = filter (`Map.member` m) (around p)
+          best :: [(Int,Int)] -> (Int,Int)
+          best = minimumBy (\a b -> let t1 = m Map.! a
+                                        t2 = m Map.! b in
+                                      compare t1 t2 <> readingOrder a b)
+
+    go :: [((Int,Int),Int)] -> Map.Map (Int,Int) Int -> Set.Set (Int,Int) -> Map.Map (Int,Int) Int
+    go [] m _ = m
+    go ((p,d):odo) m seen
+      | f `elem` around p = go odo (Map.insert p d m) seen
+      | null ps = go odo m seen
+      | otherwise = go (odo <> psd) (Map.insertWith min p d m) (Set.union seen (Set.fromList ps))
+
+      where
+        ps = filter (`Set.notMember` seen) $ possible p
+        psd = map (,d+1) ps
+
+adjacentEnemies :: World -> (Int,Int) -> [(Int,Int)]
+adjacentEnemies w p = filter (\x -> isEnemy (at w p) (at w x)) $ around p
+
+attack :: World -> (Int,Int) -> World
+attack w@(World m) p = World $ Map.adjust hit p m
+
+move :: World -> (Int,Int) -> Maybe (Int,Int) -> World
+move w _ Nothing = w
+move w@(World m) p (Just x)
+  | isOpen (at w p) = w
+  | otherwise = World $ Map.insert x (at w p) (Map.insert p Open m)
+
+action :: World -> (Int,Int) -> World
+action w p = let (w', p') = case bestMove w p of
+                              Nothing -> (w,p)
+                              np@(Just x) -> (move w p np, x) in
+               attackOne w' p' $ adjacentEnemies w' p'
+  where
+    attackOne :: World -> (Int,Int) -> [(Int,Int)] -> World
+    attackOne w' _ [] = w'
+    attackOne w'@(World m) p' ae = attack w' $ best ae
+      where
+        best :: [(Int,Int)] -> (Int,Int)
+        best = minimumBy (\a b -> let a' = m Map.! a
+                                      b' = m Map.! b in
+                                    comparing hp a' b' <> readingOrder a b)
+
+gameOver :: World -> Bool
+gameOver w@(World m) = let (e,g) = foldr (\x o@(e,g) ->
+                                            case () of _
+                                                         | isElf x -> (e+1,g)
+                                                         | isGoblin x -> (e,g+1)
+                                                         | otherwise -> o)
+                                   (0,0) m in
+                         e == 0 || g == 0
+
+aRound :: World -> (Bool, World)
+aRound w = foldl' perform (False, w) (players w)
+
+  where perform :: (Bool, World) -> (Int,Int) -> (Bool, World)
+        perform (_,w') p =
+          -- trace ("performing a round from " <> show p <> " - "
+          --        <> show (at w p) <> " - " <> show (filter (isEnemy (at w p)) $ map (at w) $ players w)) $
+          if hasEnemies w' p then (True, action w' p)
+          else (False, w')
+
+        hasEnemies :: World -> (Int,Int) -> Bool
+        hasEnemies w' p = not.null $ ofType w' (isEnemy $ at w' p)
+
+play' :: World -> Int -> (World -> Int -> World) -> (Int, World)
+play' w i f = let (did,w') = aRound (f w i) in
+             if not did then (i,w')
+             else play' w' (i+1) f
+
+play :: World -> Int -> (Int, World)
+play w i = play' w i const
+  where
+    ms w i =  trace ("round " <> show i <> "\n" <> show w) w
+
+score :: World -> Int
+score w = sum (map (hp . at w) $ players w)
+
+getInput :: IO World
+getInput = parseInput . lines <$> readFile "input/day15"
+
+{-
+too low: 186162
+too high: 199600
+-}
+
+part1 :: IO ()
+part1 = do
+  w <- getInput
+  print w
+  let (r, w') = play' w 0 (\w'' i -> trace (show i <> "\n" <> show w'' <> "\n") w'')
+  let s = score w'
+  putStrLn $ "final score after " <> show r <> " rounds: " <> show s
+  print w'
+  print $ s * r
+
+main :: IO ()
+main = do
+  w <- parseInput . lines <$> getContents
+  print w
+  let (r, w') = play' w 0 (\w'' i -> trace (show i <> "\n" <> show w'' <> "\n") w'')
+  let s = score w'
+  putStrLn $ "final score after " <> show r <> " rounds: " <> show s
+  print w'
+  print $ s * r

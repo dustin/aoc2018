@@ -9,6 +9,7 @@ import qualified Data.Array.Unboxed as A
 
 import Day10 (findMin)
 import Day11 (Grid(..), mkSumAreaTable, sumIn)
+import qualified Day15
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [
@@ -59,6 +60,23 @@ prop_findMinNotMin (NonEmpty xs) = let mn = minimum xs
                                        l = xs <> [succ mn, (pred.pred) mn] in
                                      findMin id l /= minimum l
 
+day15Test :: String -> Int -> Int -> Assertion
+day15Test fn rounds score = do
+  w <- Day15.parseInput . lines <$> readFile fn
+  let (x,w') = Day15.play w 0
+  assertEqual "rounds" rounds x
+  assertEqual "score" score (Day15.score w')
+
+
+propReadingOrder :: (Int,Int) -> (Int,Int) -> Bool
+propReadingOrder a b = Day15.readingOrder a b == ro a b
+  where
+    ro :: (Int,Int) -> (Int,Int) -> Ordering
+    ro (x1,y1) (x2,y2)
+      | y1 < y2 = LT
+      | y1 == y2 = compare x1 x2
+      | y1 > y2 = GT
+
 tests :: [TestTree]
 tests = [
   testGroup "findMin" testFindMin,
@@ -68,7 +86,15 @@ tests = [
 
   testProperty "findMin is not minimum" prop_findMinNotMin,
 
-  testSAT
+  testSAT,
+
+  testProperty "reading order" propReadingOrder,
+  testCase "day 15 s2" $ day15Test "input/day15.sample" 47 590,
+  testCase "day 15 s2" $ day15Test "input/day15.sample2" 20 937,
+  testCase "day 15 s3" $ day15Test "input/day15.sample3" 54 536,
+  testCase "day 15 s4" $ day15Test "input/day15.sample4" 35 793,
+  testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859,
+  testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812
   ]
 
 main :: IO ()
