@@ -1,17 +1,15 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Day16 where
 
-import           Control.Monad        (mapM_)
+import           Control.Applicative  ((<|>))
+import           Control.Monad        (replicateM)
 import qualified Data.Attoparsec.Text as A
-import           Data.Either          (either)
-import           Data.List            (sortBy, sortOn)
-import           Data.List.Extra      (chunksOf)
+import           Data.Bits            ((.&.), (.|.))
+import           Data.List            (foldl')
 import qualified Data.Map.Strict      as Map
-import           Data.Ord             (comparing)
 import           Data.Text            (Text, pack)
-import           Debug.Trace          (trace)
-import Data.Bits ((.|.), (.&.))
 
 type Params = (Int,Int,Int)
 
@@ -24,14 +22,14 @@ reg (v,_,_,_) 0 = v
 reg (_,v,_,_) 1 = v
 reg (_,_,v,_) 2 = v
 reg (_,_,_,v) 3 = v
-reg _ _ = 0
+reg _ _         = 0
 
 sreg :: Regs -> Int -> Int -> Regs
 sreg (a,b,c,d) 0 v = (v,b,c,d)
 sreg (a,b,c,d) 1 v = (a,v,c,d)
 sreg (a,b,c,d) 2 v = (a,b,v,d)
 sreg (a,b,c,d) 3 v = (a,b,c,v)
-sreg r _ _ = r
+sreg r _ _         = r
 
 rcmd :: (Int->Int->Int) -> Params -> Regs -> Regs
 rcmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) (reg regs vb)
@@ -126,3 +124,49 @@ part1 :: IO ()
 part1 = do
   (Right tests) <- getInput
   print $ length . filter (>= 3) . map (length . matches) $ tests
+
+fit :: [a] -> [Int] -> (a -> Int -> Bool) -> Maybe (Map.Map Int a)
+fit as is f = go as is mempty
+
+  where
+    go [] _ m = Just m
+    go (x:xs) ks m = let matches = filter (f x) ks in
+                       foldr (\k o -> go xs (filter (/= k) ks) (Map.insert k x m) <|> o) Nothing matches
+
+groupTests :: [Test] -> Map.Map Int [Test]
+groupTests tests = Map.fromListWith (<>) $ map (\t@(Test _ (o,_,_,_) _) -> (o,[t])) tests
+
+figureOutOpcodes :: [Test] -> Maybe (Map.Map Int Opfun)
+figureOutOpcodes tests = fit allOps (Map.keys gt) passesSome
+
+  where
+    gt = groupTests tests
+    gt' = take 10 <$> gt
+
+    passesSome :: Opfun -> Int -> Bool
+    passesSome f i = all (\t -> evalTest t f) $ gt' Map.! i
+
+
+data Program = Program [Test] [Regs]
+
+parseProgram :: A.Parser Program
+parseProgram = do
+  tests <- A.many1 parseTest
+  _ <- A.skipSpace
+  regs <- A.many1 reg
+
+  pure $ Program tests (map rs regs)
+
+  where reg = replicateM 4 (A.decimal <* A.skipSpace)
+        rs [a,b,c,d] = (a,b,c,d)
+
+getInput2 :: IO (Either String Program)
+getInput2 = A.parseOnly (parseProgram) . pack <$> readFile "input/day16"
+
+part2 :: IO ()
+part2 = do
+  (Right (Program tests inputs)) <- getInput2
+  let (Just opcodes) = figureOutOpcodes tests
+  let r = foldl' (\r (op,va,vb,vc) ->
+                     (opcodes Map.! op) (va,vb,vc) r) (0,0,0,0) inputs
+  print r
