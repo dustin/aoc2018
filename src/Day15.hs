@@ -242,11 +242,8 @@ score w = sum (map (hp . at w) $ players w)
 getInput :: IO World
 getInput = parseInput . lines <$> readFile "input/day15"
 
-{-
-too low: 186162
-too high: 199600
--}
-
+-- final score after 77 rounds: 2543
+-- 195811
 part1 :: IO ()
 part1 = do
   w <- getInput
@@ -268,6 +265,8 @@ binSearch f l h
     v = f mid
 
 
+-- final score after 63 rounds: 1109
+-- 69867
 part2 :: IO ()
 part2 = do
   w <- getInput
