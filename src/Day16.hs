@@ -133,25 +133,30 @@ part1 = do
 -- Stuff for part 2 below.
 --
 
-fit :: Ord b => [a] -> [b] -> (a -> b -> Bool) -> Maybe (Map.Map b a)
-fit as is f = go as is mempty
+fit :: (a -> b -> Bool) -> [a] -> [b] -> Maybe [(a,b)]
+fit f = go []
 
   where
-    go [] _ m = Just m
-    go (x:xs) ks m = foldr (\k o -> go xs (filter (/= k) ks) (Map.insert k x m) <|> o) Nothing (filter (f x) ks)
+    go r [] _ = Just r
+    go r ks (x:xs) = foldr (\(k,ks') o ->go ((k,x):r) ks' xs <|> o)
+                     Nothing (filter (\(k,_) -> f k x) $ select ks)
+
+    select [] = []
+    select (x:xs) = [(x,xs)] <> (fmap (x:) <$> select xs)
+
 
 groupTests :: [Test] -> Map.Map Int [Test]
 groupTests tests = Map.fromListWith (<>) $ map (\t@(Test _ (o,_,_,_) _) -> (o,[t])) tests
 
 figureOutOpcodes :: [Test] -> Maybe (Map.Map Int Opfun)
-figureOutOpcodes tests = fit allOps (Map.keys gt) passesSome
+figureOutOpcodes tests = Map.fromList <$> fit passesSome (Map.keys gt) allOps
 
   where
     gt = groupTests tests
     gt' = take 10 <$> gt
 
-    passesSome :: Opfun -> Int -> Bool
-    passesSome f i = all (`evalTest` f) $ gt' Map.! i
+    passesSome :: Int -> Opfun -> Bool
+    passesSome i f = all (`evalTest` f) $ gt' Map.! i
 
 
 data Program = Program [Test] [Regs]
