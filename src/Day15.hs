@@ -58,7 +58,7 @@ mkHit e = dohit
       | otherwise = Open
     dohit x = error ("can't hit " <> show x)
 
-data World = World (Map.Map (Int,Int) Thing)
+newtype World = World (Map.Map (Int,Int) Thing)
 
 instance Show World where
   show (World m) =intercalate "\n" $ map row [0..my]
@@ -66,8 +66,8 @@ instance Show World where
     where
       mx = maximum (fst <$> Map.keys m)
       my = maximum (snd <$> Map.keys m)
-      row y = concatMap (\x -> (take 1 . show $ m Map.! (x,y))) [0..mx] <> hps
-        where hps = let obs = filter (\o -> (isElf o || isGoblin o)) $ map (\x -> m Map.! (x,y)) [0..mx] in
+      row y = concatMap (\x -> take 1 . show $ m Map.! (x,y)) [0..mx] <> hps
+        where hps = let obs = filter (\o -> isElf o || isGoblin o) $ map (\x -> m Map.! (x,y)) [0..mx] in
                       if null obs then ""
                       else " " <> intercalate ", " (map show obs)
 
@@ -111,8 +111,8 @@ targets :: World -> (Int,Int) -> [(Int,Int)]
 -- targets _ (23,8) = [(24,10)]
 targets w@(World m) pos = let enemies = ofType w (isEnemy (m Map.! pos))
                               open = openSpace w
-                              tset = (openSpace w) `Set.intersection` (Set.fromList $ concatMap around enemies) in
-                            sortBy (comparing (mdist pos)) (Set.toList tset)
+                              tset = openSpace w `Set.intersection` Set.fromList (concatMap around enemies) in
+                            sortOn (mdist pos) (Set.toList tset)
 
 players :: World -> [(Int,Int)]
 players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
@@ -120,7 +120,7 @@ players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
 bestMove :: World -> (Int,Int) -> Maybe (Int,Int)
 bestMove w p
   | not $ null $ adjacentEnemies w p = Nothing
-  | otherwise = (listToMaybe $ best Nothing $ targetPaths w p)
+  | otherwise = listToMaybe $ best Nothing $ targetPaths w p
 
   where best :: Maybe ((Int,Int), [(Int,Int)]) -> [((Int,Int),Maybe [(Int,Int)])] -> [(Int,Int)]
         best Nothing [] = []        -- no moves
@@ -158,7 +158,7 @@ pathTo w f t
       | p == t = []
       | null next = [Nothing]
       | otherwise = let np = best next in
-                      (Just np) : resolve np m
+                      Just np : resolve np m
 
         where
           next :: [(Int,Int)]
