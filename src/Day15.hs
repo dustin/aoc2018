@@ -43,14 +43,20 @@ hp (Elf x) = x
 hp (Goblin x) = x
 hp x = error ("no HP for " <> show x)
 
-hit :: Thing -> Thing
-hit (Elf x)
-  | x > 3 = Elf $ x - 3
-  | otherwise = Open
-hit (Goblin x)
-  | x > 3 = Goblin $ x - 3
-  | otherwise = Open
-hit x = error ("can't hit " <> show x)
+type HitFun = Thing -> Thing
+
+mkHit :: Int -> Thing -> Thing
+mkHit e = dohit
+
+  where
+    dohit :: Thing -> Thing
+    dohit (Elf x)
+      | x > 3 = Elf $ x - 3
+      | otherwise = Open
+    dohit (Goblin x)
+      | x > e = Goblin $ x - e
+      | otherwise = Open
+    dohit x = error ("can't hit " <> show x)
 
 data World = World (Map.Map (Int,Int) Thing)
 
@@ -176,8 +182,8 @@ pathTo w f t
 adjacentEnemies :: World -> (Int,Int) -> [(Int,Int)]
 adjacentEnemies w p = filter (\x -> isEnemy (at w p) (at w x)) $ around p
 
-attack :: World -> (Int,Int) -> World
-attack w@(World m) p = World $ Map.adjust hit p m
+attack :: World -> (Int,Int) -> HitFun -> World
+attack w@(World m) p hit = World $ Map.adjust hit p m
 
 move :: World -> (Int,Int) -> Maybe (Int,Int) -> World
 move w _ Nothing = w
@@ -185,15 +191,15 @@ move w@(World m) p (Just x)
   | isOpen (at w p) = w
   | otherwise = World $ Map.insert x (at w p) (Map.insert p Open m)
 
-action :: World -> (Int,Int) -> World
-action w p = let (w', p') = case bestMove w p of
-                              Nothing -> (w,p)
-                              np@(Just x) -> (move w p np, x) in
-               attackOne w' p' $ adjacentEnemies w' p'
+action :: World -> (Int,Int) -> HitFun -> World
+action w p hit = let (w', p') = case bestMove w p of
+                                  Nothing -> (w,p)
+                                  np@(Just x) -> (move w p np, x) in
+                   attackOne w' p' $ adjacentEnemies w' p'
   where
     attackOne :: World -> (Int,Int) -> [(Int,Int)] -> World
     attackOne w' _ [] = w'
-    attackOne w'@(World m) p' ae = attack w' $ best ae
+    attackOne w'@(World m) p' ae = attack w' (best ae) hit
       where
         best :: [(Int,Int)] -> (Int,Int)
         best = minimumBy (\a b -> let a' = m Map.! a
@@ -209,26 +215,24 @@ gameOver w@(World m) = let (e,g) = foldr (\x o@(e,g) ->
                                    (0,0) m in
                          e == 0 || g == 0
 
-aRound :: World -> (Bool, World)
-aRound w = foldl' perform (False, w) (players w)
+aRound :: World -> HitFun -> (Bool, World)
+aRound w hit = foldl' perform (False, w) (players w)
 
   where perform :: (Bool, World) -> (Int,Int) -> (Bool, World)
         perform (_,w') p =
-          -- trace ("performing a round from " <> show p <> " - "
-          --        <> show (at w p) <> " - " <> show (filter (isEnemy (at w p)) $ map (at w) $ players w)) $
-          if hasEnemies w' p then (True, action w' p)
+          if hasEnemies w' p then (True, action w' p hit)
           else (False, w')
 
         hasEnemies :: World -> (Int,Int) -> Bool
         hasEnemies w' p = not.null $ ofType w' (isEnemy $ at w' p)
 
-play' :: World -> Int -> (World -> Int -> World) -> (Int, World)
-play' w i f = let (did,w') = aRound (f w i) in
-             if not did then (i,w')
-             else play' w' (i+1) f
+play' :: World -> Int -> HitFun -> (World -> Int -> World) -> (Int, World)
+play' w i hit f = let (did,w') = aRound (f w i) hit in
+                    if not did then (i,w')
+                    else play' w' (i+1) hit f
 
-play :: World -> Int -> (Int, World)
-play w i = play' w i const
+play :: World -> Int -> HitFun -> (Int, World)
+play w i hit = play' w i hit const
   where
     ms w i =  trace ("round " <> show i <> "\n" <> show w) w
 
@@ -247,18 +251,48 @@ part1 :: IO ()
 part1 = do
   w <- getInput
   print w
-  let (r, w') = play' w 0 (\w'' i -> trace (show i <> "\n" <> show w'' <> "\n") w'')
+  let (r, w') = play' w 0 (mkHit 3) (\w'' i -> trace (show i <> "\n" <> show w'' <> "\n") w'')
   let s = score w'
   putStrLn $ "final score after " <> show r <> " rounds: " <> show s
   print w'
   print $ s * r
 
-main :: IO ()
-main = do
-  w <- parseInput . lines <$> getContents
-  print w
-  let (r, w') = play' w 0 (\w'' i -> trace (show i <> "\n" <> show w'' <> "\n") w'')
+binSearch :: (Int -> Ordering) ->  Int -> Int -> Int
+binSearch f l h
+  | h < l     = l
+  | v == GT   = binSearch f l (mid-1)
+  | v == LT   = binSearch f (mid+1) h
+  | otherwise = mid
+  where
+    mid = l + (h-l) `div` 2
+    v = f mid
+
+
+part2 :: IO ()
+part2 = do
+  w <- getInput
+  let nelves = length $ elves w
+  putStrLn ("Initial elves: " <> show nelves)
+
+  let ans = binSearch (\i -> let (ok,w') = tilDeath w i nelves in
+                               trace ("@" <> show i <> " elves: " <> show (length $ elves w') <> "\n" <> show w') $
+                               if ok then GT
+                               else LT) 4 100
+  let (r, w') = play w 0 (mkHit ans)
   let s = score w'
   putStrLn $ "final score after " <> show r <> " rounds: " <> show s
   print w'
   print $ s * r
+
+
+  where
+    tilDeath :: World -> Int -> Int -> (Bool,World)
+    tilDeath w n es = go w
+
+      where
+        hit = mkHit n
+        go w = let (did,w') = aRound w hit in
+                 case () of _
+                              | not did -> (True,w')
+                              | length (elves w') < es -> (False,w')
+                              | otherwise -> go w'

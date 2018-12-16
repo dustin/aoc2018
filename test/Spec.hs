@@ -5,6 +5,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
+import Data.List (sort)
 import qualified Data.Array.Unboxed as A
 
 import Day10 (findMin)
@@ -63,7 +64,7 @@ prop_findMinNotMin (NonEmpty xs) = let mn = minimum xs
 day15Test :: String -> Int -> Int -> Assertion
 day15Test fn rounds score = do
   w <- Day15.parseInput . lines <$> readFile fn
-  let (x,w') = Day15.play w 0
+  let (x,w') = Day15.play w 0 (Day15.mkHit 3)
   assertEqual "rounds" rounds x
   assertEqual "score" score (Day15.score w')
 
@@ -76,6 +77,10 @@ propReadingOrder a b = Day15.readingOrder a b == ro a b
       | y1 < y2 = LT
       | y1 == y2 = compare x1 x2
       | y1 > y2 = GT
+
+propBinSearch :: Int -> Int -> Int -> Bool
+propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
+                        Day15.binSearch (flip compare b') a' c' == b'
 
 tests :: [TestTree]
 tests = [
@@ -94,7 +99,9 @@ tests = [
   testCase "day 15 s3" $ day15Test "input/day15.sample3" 54 536,
   testCase "day 15 s4" $ day15Test "input/day15.sample4" 35 793,
   testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859,
-  testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812
+  testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812,
+
+  testProperty "bin search" propBinSearch
   ]
 
 main :: IO ()
