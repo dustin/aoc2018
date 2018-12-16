@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
 
 module Day16 where
 
@@ -37,6 +36,15 @@ rcmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) (reg regs vb)
 icmd :: (Int->Int->Int) -> Params -> Regs -> Regs
 icmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) vb
 
+cmpir :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
+cmpir f (va,vb,vc) regs = sreg regs vc (if f va (reg regs vb) then 1 else 0)
+
+cmpri :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
+cmpri f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) vb then 1 else 0)
+
+cmprr :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
+cmprr f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) (reg regs vb) then 1 else 0)
+
 addr :: Opfun
 addr = rcmd (+)
 
@@ -67,15 +75,6 @@ setr = rcmd const
 seti :: Opfun
 seti (va,_,vc) regs = sreg regs vc va
 
-cmpir :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmpir f (va,vb,vc) regs = sreg regs vc (if f va (reg regs vb) then 1 else 0)
-
-cmpri :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmpri f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) vb then 1 else 0)
-
-cmprr :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmprr f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) (reg regs vb) then 1 else 0)
-
 gtir :: Opfun
 gtir = cmpir (>)
 
@@ -96,6 +95,10 @@ eqrr = cmprr (==)
 
 allOps :: [Opfun]
 allOps = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
+
+--
+-- Stuff for part1.
+--
 
 data Test = Test Regs Regs Regs deriving (Show)
 
@@ -120,18 +123,22 @@ matches t = filter (evalTest t) allOps
 getInput :: IO (Either String [Test])
 getInput = A.parseOnly (A.many1 parseTest) . pack <$> readFile "input/day16"
 
+-- 563
 part1 :: IO ()
 part1 = do
   (Right tests) <- getInput
   print $ length . filter (>= 3) . map (length . matches) $ tests
 
-fit :: [a] -> [Int] -> (a -> Int -> Bool) -> Maybe (Map.Map Int a)
+--
+-- Stuff for part 2 below.
+--
+
+fit :: Ord b => [a] -> [b] -> (a -> b -> Bool) -> Maybe (Map.Map b a)
 fit as is f = go as is mempty
 
   where
     go [] _ m = Just m
-    go (x:xs) ks m = let matches = filter (f x) ks in
-                       foldr (\k o -> go xs (filter (/= k) ks) (Map.insert k x m) <|> o) Nothing matches
+    go (x:xs) ks m = foldr (\k o -> go xs (filter (/= k) ks) (Map.insert k x m) <|> o) Nothing (filter (f x) ks)
 
 groupTests :: [Test] -> Map.Map Int [Test]
 groupTests tests = Map.fromListWith (<>) $ map (\t@(Test _ (o,_,_,_) _) -> (o,[t])) tests
@@ -144,7 +151,7 @@ figureOutOpcodes tests = fit allOps (Map.keys gt) passesSome
     gt' = take 10 <$> gt
 
     passesSome :: Opfun -> Int -> Bool
-    passesSome f i = all (\t -> evalTest t f) $ gt' Map.! i
+    passesSome f i = all (`evalTest` f) $ gt' Map.! i
 
 
 data Program = Program [Test] [Regs]
@@ -161,8 +168,9 @@ parseProgram = do
         rs [a,b,c,d] = (a,b,c,d)
 
 getInput2 :: IO (Either String Program)
-getInput2 = A.parseOnly (parseProgram) . pack <$> readFile "input/day16"
+getInput2 = A.parseOnly parseProgram . pack <$> readFile "input/day16"
 
+-- (629,629,4,2)
 part2 :: IO ()
 part2 = do
   (Right (Program tests inputs)) <- getInput2
