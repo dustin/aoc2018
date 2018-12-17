@@ -138,7 +138,7 @@ img = do
 
         mkpixel m x y = c (Map.lookup (x+mnx, y+mny) m)
 
-        c Nothing    = PixelRGB8 255 255 255
-        c (Just '#') = PixelRGB8 0 0 0
-        c (Just '~') = PixelRGB8 0 0 255
+        c Nothing    = PixelRGB8 194 178 128
+        c (Just '#') = PixelRGB8 152 105 96
+        c (Just '~') = PixelRGB8 0 0 128
         c (Just '|') = PixelRGB8 0 0 255
