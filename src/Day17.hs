@@ -69,7 +69,10 @@ parseClay = do
       pure [a..b]
 
 getInput :: IO (Either String Scan)
-getInput = A.parseOnly parseScans . pack <$> readFile "input/day17"
+getInput = getInput' "input/day17"
+
+getInput' :: String -> IO (Either String Scan)
+getInput' fn = A.parseOnly parseScans . pack <$> readFile fn
 
 pour :: Scan -> (Int,Int) -> Scan
 pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
@@ -115,10 +118,13 @@ part1 = do
   print s'
   print $ countWater s'
 
--- 30323 is too high
+countWater2 :: Scan -> Int
+countWater2 (Scan m) = Map.foldr (\x o -> if x == '~' then o + 1 else o) 0 m
+
+-- 27801
 part2 :: IO ()
 part2 = do
   (Right scans) <- getInput
   let ((mnx,mny),(mxx,mxy)) = bounds scans
-  let (Scan m) = pour scans (500,mny)
-  print $ Map.foldr (\x o -> if x == '~' then o + 1 else o) 0 m
+  let s' = pour scans (500,mny)
+  print $ countWater2 s'

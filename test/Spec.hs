@@ -2,6 +2,7 @@
 
 import Test.QuickCheck
 import Test.Tasty
+import Test.Tasty.Golden
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
@@ -11,6 +12,7 @@ import qualified Data.Array.Unboxed as A
 import Day10 (findMin)
 import Day11 (Grid(..), mkSumAreaTable, sumIn)
 import qualified Day15
+import qualified Day17
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [
@@ -82,8 +84,18 @@ propBinSearch :: Int -> Int -> Int -> Bool
 propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
                         Day15.binSearch (flip compare b') a' c' == b'
 
+run17 :: FilePath -> String -> IO ()
+run17 inf outf = do
+  (Right s) <- Day17.getInput' inf
+  let ((mnx,mny),(mxx,mxy)) = Day17.bounds s
+  let s' = Day17.pour s (500,mny)
+  writeFile outf (show s' <> "\n" <> show (Day17.countWater s', Day17.countWater2 s'))
+
 tests :: [TestTree]
 tests = [
+  goldenVsFileDiff "day17 (flood)" (\ref new -> ["diff", "-qw", ref, new])
+    "test/output/day17.txt" "test/output/,day17.txt" (run17 "input/day17" "test/output/,day17.txt"),
+
   testGroup "findMin" testFindMin,
 
   localOption (QC.QuickCheckTests 10000) $ testProperty "findMin" prop_min,
