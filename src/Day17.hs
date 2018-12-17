@@ -94,11 +94,11 @@ pour s@(Scan m) = Scan $ down (500,mny) m
             spills = any spillpoint edges
             spillsat = fmap (+1) <$> filter spillpoint edges
             spillpoint (x,y) = ml (x,y+1) == Nothing
-            edges = [search pred (x,y), search succ (x,y)]
-              where search f (x,y)
+            edges = [search pred x, search succ x]
+              where search f x
                       | spillpoint (f x,y) = (f x,y)
                       | ml (f x,y) == Just '#' = (x,y)
-                      | otherwise = search f (f x,y)
+                      | otherwise = search f (f x)
 
 countWater :: Scan -> Int
 countWater (Scan m) = length . Map.filter (`elem` ['~', '|']) $ m
