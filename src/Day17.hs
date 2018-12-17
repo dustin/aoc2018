@@ -68,8 +68,8 @@ getInput = getInput' "input/day17"
 getInput' :: String -> IO (Either String Scan)
 getInput' fn = A.parseOnly parseScans . pack <$> readFile fn
 
-pour :: Scan -> (Int,Int) -> Scan
-pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
+pour :: Scan -> Scan
+pour s@(Scan m) = Scan $ down (500,mny) m
 
   where
     ((mnx,mny),(mxx,mxy)) = bounds s
@@ -106,8 +106,7 @@ countWater (Scan m) = length . Map.filter (`elem` ['~', '|']) $ m
 part1 :: IO ()
 part1 = do
   (Right scans) <- getInput
-  let ((mnx,mny),(mxx,mxy)) = bounds scans
-  let s' = pour scans (500,mny)
+  let s' = pour scans
   print s'
   print $ countWater s'
 
@@ -118,6 +117,5 @@ countWater2 (Scan m) = length . Map.filter (== '~') $ m
 part2 :: IO ()
 part2 = do
   (Right scans) <- getInput
-  let ((mnx,mny),(mxx,mxy)) = bounds scans
-  let s' = pour scans (500,mny)
-  print $ countWater2 s'
+  let s' = pour scans
+  print $ co

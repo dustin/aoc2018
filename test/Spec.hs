@@ -87,8 +87,7 @@ propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
 run17 :: FilePath -> String -> IO ()
 run17 inf outf = do
   (Right s) <- Day17.getInput' inf
-  let ((mnx,mny),(mxx,mxy)) = Day17.bounds s
-  let s' = Day17.pour s (500,mny)
+  let s' = Day17.pour s
   writeFile outf (show s' <> "\n" <> show (Day17.countWater s', Day17.countWater2 s'))
 
 tests :: [TestTree]
