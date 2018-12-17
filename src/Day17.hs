@@ -91,7 +91,7 @@ pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
       -- | trace ("filling " <> show (x,y)) False = undefined
       -- | trace (show $ Scan (Map.filterWithKey (\(_,ky) _ -> ky <= y) m')) False = undefined
       | ml (x,y+1) `notElem` [Just '#', Just '~'] = m'
-      | ml (x,y) `elem` [Nothing, Just '|'] && spills = foldr down (fill' '~') spillsat
+      | ml (x,y) `elem` [Nothing, Just '|'] && spills = foldr (\(x,y) m'' -> down (x,y+1) m'') (fill' '|') spillsat
       | ml (x,y) `elem` [Nothing, Just '|'] = fill (x,y-1) $ fill' '~'
       | otherwise = m'
 
