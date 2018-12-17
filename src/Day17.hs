@@ -1,15 +1,13 @@
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Day17 where
 
 import           Control.Applicative  ((<|>))
-import           Control.Monad        (replicateM)
 import qualified Data.Attoparsec.Text as A
-import           Data.Bits            ((.&.), (.|.))
 import           Data.List            (intercalate)
 import qualified Data.Map.Strict      as Map
-import qualified Data.Set as Set
-import           Data.Text            (Text, pack)
+import           Data.Text            (pack)
 
 newtype Clay = Clay (Int,Int) deriving (Show)
 
