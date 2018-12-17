@@ -10,7 +10,6 @@ import           Data.List            (intercalate)
 import qualified Data.Map.Strict      as Map
 import qualified Data.Set as Set
 import           Data.Text            (Text, pack)
-import Debug.Trace (trace)
 
 newtype Clay = Clay (Int,Int) deriving (Show)
 
@@ -80,16 +79,12 @@ pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
 
     down (x,y) m'
       | y > mxy = m'
-      -- | trace ("down from " <> show (x,y)) False = undefined
       | Map.lookup (x,y) m' `elem` [Nothing, Just '~'] = down (x,y+1) $ Map.insert (x,y) '|' m'
       | Map.lookup (x,y) m' == Just '#' = fill (x,y-1) m'
       | otherwise = m'
 
     fill (x,y) m'
       | y > mxy || y < mny = m'
-      -- | x >= fmx || x <= fmn || y > mxy || y < mny = m'
-      -- | trace ("filling " <> show (x,y)) False = undefined
-      -- | trace (show $ Scan (Map.filterWithKey (\(_,ky) _ -> ky <= y) m')) False = undefined
       | ml (x,y+1) `notElem` [Just '#', Just '~'] = m'
       | ml (x,y) `elem` [Nothing, Just '|'] && spills = foldr (\(x,y) m'' -> down (x,y+1) m'') (fill' '|') spillsat
       | ml (x,y) `elem` [Nothing, Just '|'] = fill (x,y-1) $ fill' '~'
