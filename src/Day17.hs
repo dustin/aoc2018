@@ -107,7 +107,7 @@ pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
                       | otherwise = search f (f x,y)
 
 countWater :: Scan -> Int
-countWater (Scan m) = Map.foldr (\x o -> if x `elem` ['~', '|'] then o + 1 else o) 0 m
+countWater (Scan m) = length . Map.filter (`elem` ['~', '|']) $ m
 
 -- 33362
 part1 :: IO ()
@@ -119,7 +119,7 @@ part1 = do
   print $ countWater s'
 
 countWater2 :: Scan -> Int
-countWater2 (Scan m) = Map.foldr (\x o -> if x == '~' then o + 1 else o) 0 m
+countWater2 (Scan m) = length . Map.filter (== '~') $ m
 
 -- 27801
 part2 :: IO ()
