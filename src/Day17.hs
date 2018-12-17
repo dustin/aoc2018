@@ -21,10 +21,6 @@ bounds (Scan m) = ((minimum xs,minimum ys),(maximum xs, maximum ys))
     ks = Map.keys m
     xs = fst <$> ks
     ys = snd <$> ks
-    mnx = minimum xs
-    mny = minimum ys
-    mxx = maximum xs
-    mxy = maximum ys
 
 
 instance Show Scan where
@@ -89,21 +85,20 @@ pour s@(Scan m) (sx,sy) = Scan $ down (sx,sy) m
     fill (x,y) m'
       | y > mxy || y < mny = m'
       | ml (x,y+1) `notElem` [Just '#', Just '~'] = m'
-      | ml (x,y) `elem` [Nothing, Just '|'] && spills = foldr (\(x,y) m'' -> down (x,y+1) m'') (fill' '|') spillsat
+      | ml (x,y) `elem` [Nothing, Just '|'] && spills = foldr down (fill' '|') spillsat
       | ml (x,y) `elem` [Nothing, Just '|'] = fill (x,y-1) $ fill' '~'
       | otherwise = m'
 
       where ml = (`Map.lookup` m')
             fill' c = Map.union (Map.fromList (map (,c) range)) m'
-            range = [(x',y) | x' <- [fst edges .. snd edges]]
-            spills = spillpoint (fst edges, y) || spillpoint (snd edges, y)
-            spillsat = filter spillpoint [(fst edges,y), (snd edges,y)]
-            spillpoint (x,y) = open (x,y+1)
-            open p = ml p `elem` [Nothing, Just '|']
-            edges = (search pred (x,y), search succ (x,y))
+            range = [(x',y) | x' <- [(fst . head) edges .. (fst . last) edges]]
+            spills = any spillpoint edges
+            spillsat = fmap (+1) <$> filter spillpoint edges
+            spillpoint (x,y) = ml (x,y+1) == Nothing
+            edges = [search pred (x,y), search succ (x,y)]
               where search f (x,y)
-                      | spillpoint (f x,y) = f x
-                      | ml (f x,y) == Just '#' = x
+                      | spillpoint (f x,y) = (f x,y)
+                      | ml (f x,y) == Just '#' = (x,y)
                       | otherwise = search f (f x,y)
 
 countWater :: Scan -> Int
