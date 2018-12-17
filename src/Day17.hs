@@ -3,6 +3,7 @@
 
 module Day17 where
 
+import           Codec.Picture        (PixelRGB8 (..), generateImage, writePng)
 import           Control.Applicative  ((<|>))
 import qualified Data.Attoparsec.Text as A
 import           Data.List            (intercalate)
@@ -118,4 +119,26 @@ part2 :: IO ()
 part2 = do
   (Right scans) <- getInput
   let s' = pour scans
-  print $ co
+  print $ countWater2 s'
+
+img :: IO ()
+img = do
+  (Right scans) <- getInput
+  let s'@(Scan m) = pour scans
+
+  writePng "day17.png" (mkImg s')
+
+  where
+    mkImg s@(Scan m) = generateImage (mkpixel m) w h
+
+      where
+        ((mnx,mny),(mxx,mxy)) = bounds s
+        w = mxx - mnx
+        h = mxy - mny
+
+        mkpixel m x y = c (Map.lookup (x+mnx, y+mny) m)
+
+        c Nothing    = PixelRGB8 255 255 255
+        c (Just '#') = PixelRGB8 0 0 0
+        c (Just '~') = PixelRGB8 0 0 255
+        c (Just '|') = PixelRGB8 0 0 255
