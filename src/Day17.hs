@@ -121,9 +121,9 @@ part2 = do
   let s' = pour scans
   print $ countWater2 s'
 
-img :: IO ()
-img = do
-  (Right scans) <- getInput
+img :: String -> IO ()
+img s = do
+  (Right scans) <- getInput' s
   let s'@(Scan m) = pour scans
 
   writePng "day17.png" (mkImg s')
