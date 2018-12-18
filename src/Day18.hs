@@ -67,10 +67,7 @@ ofType (World m) t = length $ Map.filter (== t) m
 
 -- 467819
 part1 :: IO ()
-part1 = do
-  w <- getInput
-  print w
-  print $ score (tx 10 w)
+part1 = print =<< score . tx 10 <$> getInput
 
 -- Get the position of the start of the first cycle and the cycle length from a list
 findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int)
@@ -84,12 +81,14 @@ score :: World -> Int
 score w = ofType w Trees * ofType w Lumberyard
 
 -- 195305
+
+part2' :: World -> Int
+part2' w = let allstates = iterate tx1 w
+               (f,cl) = findCycle id allstates
+               rep = drop f allstates
+               off = (1000000000 - f) `mod` cl
+               w' = head . drop off $ rep in
+             score w'
+
 part2 :: IO ()
-part2 = do
-  w <- getInput
-  let allstates = iterate tx1 w
-  let (f,cl) = findCycle id allstates
-  let rep = drop f allstates
-  let off = (1000000000 - f) `mod` cl
-  let w' = head . drop off $ rep
-  print $ score w'
+part2 = print =<< part2' <$> getInput
