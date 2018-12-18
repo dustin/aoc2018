@@ -7,6 +7,7 @@ import qualified Data.Map.Strict as Map
 import           Data.Maybe      (mapMaybe)
 import           Debug.Trace     (trace)
 import qualified Data.Array.Unboxed as A
+import Data.Ix (Ix)
 
 type Thing = Char
 
@@ -56,8 +57,8 @@ tx1 :: World -> World
 tx1 w@(World m) = World $ mapa transform m
 
   where
-    mapa :: ((Int,Int) -> Thing -> Thing) -> A.UArray (Int,Int) Thing -> A.UArray (Int,Int) Thing
-    mapa f a = A.array (A.bounds a) $ map (\(p,c) -> (p, transform p c)) (A.assocs a)
+    mapa :: (Ix k, A.IArray u a, A.IArray u' b) => (k -> a -> b) -> u k a -> u' k b
+    mapa f a = A.listArray (A.bounds a) (map (uncurry f) $ A.assocs a)
 
     transform :: (Int,Int) -> Thing -> Thing
     transform p '.' = if atLeast p 3 trees then trees else open
