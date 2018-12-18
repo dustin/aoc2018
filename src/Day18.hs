@@ -56,11 +56,18 @@ tx1 w@(World m) = World $ Map.mapWithKey transform m
 
   where
     transform :: (Int,Int) -> Thing -> Thing
-    transform p Open = if count p Trees >= 3 then Trees else Open
-    transform p Trees = if count p Lumberyard >= 3 then Lumberyard else Trees
-    transform p Lumberyard = if count p Trees > 0 && count p Lumberyard > 0 then Lumberyard else Open
+    transform p Open = if atLeast p 3 Trees then Trees else Open
+    transform p Trees = if atLeast p 3 Lumberyard then Lumberyard else Trees
+    transform p Lumberyard = if atLeast p 1 Trees && atLeast p 1 Lumberyard then Lumberyard else Open
 
-    count p t = length . filter (== t) $ adjacent' w p
+    atLeast :: (Int,Int) -> Int -> Thing -> Bool
+    atLeast p = go (adjacent' w p)
+      where
+        go _ 0 _ = True
+        go [] _ _ = False
+        go (x:xs) n t
+          | t == x = go xs (n-1) t
+          | otherwise = go xs n t
 
 ofType :: World -> Thing -> Int
 ofType (World m) t = length $ Map.filter (== t) m
