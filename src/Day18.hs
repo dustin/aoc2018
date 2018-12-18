@@ -2,12 +2,12 @@
 
 module Day18 where
 
-import           Data.List       (intercalate)
-import qualified Data.Map.Strict as Map
-import           Data.Maybe      (mapMaybe)
-import           Debug.Trace     (trace)
 import qualified Data.Array.Unboxed as A
-import Data.Ix (Ix)
+import           Data.Ix            (Ix)
+import           Data.List          (intercalate)
+import qualified Data.Map.Strict    as Map
+import           Data.Maybe         (mapMaybe)
+import           Debug.Trace        (trace)
 
 type Thing = Char
 
