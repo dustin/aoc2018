@@ -58,7 +58,7 @@ tx1 w@(World m) = World $ mapa transform m
 
   where
     mapa :: (Ix k, A.IArray u a, A.IArray u' b) => (k -> a -> b) -> u k a -> u' k b
-    mapa f a = A.listArray (A.bounds a) (map (uncurry f) $ A.assocs a)
+    mapa f a = A.listArray (A.bounds a) (uncurry f <$> A.assocs a)
 
     transform :: (Int,Int) -> Thing -> Thing
     transform p '.' = if atLeast p 3 trees then trees else open
