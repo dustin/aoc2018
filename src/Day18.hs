@@ -6,6 +6,7 @@ import           Data.List       (intercalate)
 import qualified Data.Map.Strict as Map
 import           Data.Maybe      (mapMaybe)
 import           Debug.Trace     (trace)
+import qualified Data.Array.Unboxed as A
 
 type Thing = Char
 
@@ -14,12 +15,10 @@ open = '.'
 trees = '|'
 lumberyard = '#'
 
-newtype World = World (Map.Map (Int,Int) Thing) deriving (Eq, Ord)
+newtype World = World (A.UArray (Int,Int) Thing) deriving (Eq, Ord)
 
 bounds :: World -> (Int,Int)
-bounds (World m) = (maximum (fst <$> ks), maximum (snd <$> ks))
-
-  where ks = Map.keys m
+bounds (World m) =snd $ A.bounds m
 
 adjacent :: World -> (Int,Int) -> [(Int,Int)]
 adjacent w (x,y) = [(x + n, y + m) | n <- [-1..1], m <- [-1..1],
@@ -27,17 +26,25 @@ adjacent w (x,y) = [(x + n, y + m) | n <- [-1..1], m <- [-1..1],
   where (mx,my) = bounds w
 
 adjacent' :: World -> (Int,Int) -> [Thing]
-adjacent' w@(World m) p = mapMaybe (`Map.lookup` m) $ adjacent w p
+adjacent' w@(World m) p = mapMaybe lu $ adjacent w p
+  where
+    (mxx, mxy) = bounds w
+    lu p'@(x,y)
+      | x < 0 || y < 0 || x > mxx || y > mxy = Nothing
+      | otherwise = Just (m A.! p')
 
 instance Show World where
   show w@(World m) = intercalate "\n" $ map row [0..my]
 
     where
       (mx,my) = bounds w
-      row y = concatMap (\x -> show $ m Map.! (x,y)) [0..mx]
+      row y = map (\x -> m A.! (x,y)) [0..mx]
 
 parseInput :: [String] -> World
-parseInput lns = World $ Map.fromList $ concatMap (\(y,r) -> map (\(x,c) -> ((x,y),c)) $ zip [0..] r) $ zip [0..] lns
+parseInput lns = World $ A.array ((0,0),(mx,my)) els
+                 where els = concatMap (\(y,r) -> map (\(x,c) -> ((x,y),c)) $ zip [0..] r) $ zip [0..] lns
+                       mx = maximum (fst . fst <$> els)
+                       my = maximum (snd . fst <$> els)
 
 getInput :: IO World
 getInput = parseInput . lines <$> readFile "input/day18"
@@ -46,9 +53,12 @@ tx :: Int -> World -> World
 tx n = head . drop n . iterate tx1
 
 tx1 :: World -> World
-tx1 w@(World m) = World $ Map.mapWithKey transform m
+tx1 w@(World m) = World $ mapa transform m
 
   where
+    mapa :: ((Int,Int) -> Thing -> Thing) -> A.UArray (Int,Int) Thing -> A.UArray (Int,Int) Thing
+    mapa f a = A.array (A.bounds a) $ map (\(p,c) -> (p, transform p c)) (A.assocs a)
+
     transform :: (Int,Int) -> Thing -> Thing
     transform p '.' = if atLeast p 3 trees then trees else open
     transform p '|' = if atLeast p 3 lumberyard then lumberyard else trees
@@ -64,7 +74,7 @@ tx1 w@(World m) = World $ Map.mapWithKey transform m
           | otherwise = go xs n t
 
 ofType :: World -> Thing -> Int
-ofType (World m) t = length $ Map.filter (== t) m
+ofType (World m) t = length $ filter (== t) (A.elems m)
 
 -- 467819
 part1 :: IO ()
