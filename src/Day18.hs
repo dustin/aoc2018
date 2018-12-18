@@ -7,12 +7,12 @@ import qualified Data.Map.Strict as Map
 import           Data.Maybe      (mapMaybe)
 import           Debug.Trace     (trace)
 
-data Thing = Open | Trees | Lumberyard deriving (Eq, Ord)
+type Thing = Char
 
-instance Show Thing where
-  show Open       = "."
-  show Trees      = "|"
-  show Lumberyard = "#"
+open, trees, lumberyard :: Thing
+open = '.'
+trees = '|'
+lumberyard = '#'
 
 newtype World = World (Map.Map (Int,Int) Thing) deriving (Eq, Ord)
 
@@ -37,13 +37,7 @@ instance Show World where
       row y = concatMap (\x -> show $ m Map.! (x,y)) [0..mx]
 
 parseInput :: [String] -> World
-parseInput lns = World $ Map.fromList $ concatMap (\(y,r) -> map (\(x,c) -> ((x,y),p c)) $ zip [0..] r) $ zip [0..] lns
-
-  where p :: Char -> Thing
-        p '.' = Open
-        p '|' = Trees
-        p '#' = Lumberyard
-        p x   = error ("can't parse " <> show x)
+parseInput lns = World $ Map.fromList $ concatMap (\(y,r) -> map (\(x,c) -> ((x,y),c)) $ zip [0..] r) $ zip [0..] lns
 
 getInput :: IO World
 getInput = parseInput . lines <$> readFile "input/day18"
@@ -56,9 +50,9 @@ tx1 w@(World m) = World $ Map.mapWithKey transform m
 
   where
     transform :: (Int,Int) -> Thing -> Thing
-    transform p Open = if atLeast p 3 Trees then Trees else Open
-    transform p Trees = if atLeast p 3 Lumberyard then Lumberyard else Trees
-    transform p Lumberyard = if atLeast p 1 Trees && atLeast p 1 Lumberyard then Lumberyard else Open
+    transform p '.' = if atLeast p 3 trees then trees else open
+    transform p '|' = if atLeast p 3 lumberyard then lumberyard else trees
+    transform p '#' = if atLeast p 1 trees && atLeast p 1 lumberyard then lumberyard else open
 
     atLeast :: (Int,Int) -> Int -> Thing -> Bool
     atLeast p = go (adjacent' w p)
@@ -85,7 +79,7 @@ findCycle f = go 0 mempty
           where t = f x
 
 score :: World -> Int
-score w = ofType w Trees * ofType w Lumberyard
+score w = ofType w trees * ofType w lumberyard
 
 -- 195305
 
