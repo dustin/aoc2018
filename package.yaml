@@ -64,3 +64,17 @@ tests:
     - tasty-hunit
     - tasty-quickcheck
     - tasty-golden
+
+benchmarks:
+  aoc-bench:
+    dependencies:
+    - aoc
+    - criterion
+    - deepseq
+    ghc-options:
+    - -O2
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: bench.hs
+    source-dirs: test/bench
