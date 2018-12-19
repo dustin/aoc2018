@@ -202,9 +202,7 @@ tron p@(Program _ ops) ip iregs ticks = go ticks (ip,iregs)
 
 -- (2520,865,1,865,256,864)
 part1 :: IO ()
-part1 = do
-  (Right prog) <- getInput
-  print $ execute prog 0 (0,0,0,0,0,0)
+part1 = getInput >>= \(Right prog) -> print $ execute prog 0 (0,0,0,0,0,0)
 
 -- 27941760
 part2 :: IO ()
