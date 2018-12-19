@@ -12,5 +12,8 @@ instance NFData World where
 
 tests :: [Benchmark]
 tests = [
-  env getInput $ \ ~w -> bench "transform" $ nf tx1 w
+  env getInput $ \ ~w -> bgroup "worldly" [
+      bench "transform" $ nf tx1 w,
+      bench "100th" $ nf (tx 100) w
+      ]
   ]
