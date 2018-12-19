@@ -16,10 +16,10 @@ open = '.'
 trees = '|'
 lumberyard = '#'
 
-newtype World = World (A.UArray (Int,Int) Thing) deriving (Eq, Ord)
+type World = A.UArray (Int,Int) Thing
 
 bounds :: World -> (Int,Int)
-bounds (World m) =snd $ A.bounds m
+bounds w = snd $ A.bounds w
 
 adjacent :: World -> (Int,Int) -> [(Int,Int)]
 adjacent w (x,y) = [(x + n, y + m) | n <- [-1..1], m <- [-1..1],
@@ -27,22 +27,22 @@ adjacent w (x,y) = [(x + n, y + m) | n <- [-1..1], m <- [-1..1],
   where (mx,my) = bounds w
 
 adjacent' :: World -> (Int,Int) -> [Thing]
-adjacent' w@(World m) p = mapMaybe lu $ adjacent w p
+adjacent' w p = mapMaybe lu $ adjacent w p
   where
     (mxx, mxy) = bounds w
     lu p'@(x,y)
       | x < 0 || y < 0 || x > mxx || y > mxy = Nothing
-      | otherwise = Just (m A.! p')
+      | otherwise = Just (w A.! p')
 
-instance Show World where
-  show w@(World m) = intercalate "\n" $ map row [0..my]
+draw :: World -> String
+draw w = intercalate "\n" $ map row [0..my]
 
-    where
-      (mx,my) = bounds w
-      row y = map (\x -> m A.! (x,y)) [0..mx]
+  where
+    (mx,my) = bounds w
+    row y = map (\x -> w A.! (x,y)) [0..mx]
 
 parseInput :: [String] -> World
-parseInput lns = World $ A.array ((0,0),(mx,my)) els
+parseInput lns = A.array ((0,0),(mx,my)) els
                  where els = concatMap (\(y,r) -> map (\(x,c) -> ((x,y),c)) $ zip [0..] r) $ zip [0..] lns
                        mx = maximum (fst . fst <$> els)
                        my = maximum (snd . fst <$> els)
@@ -54,28 +54,27 @@ tx :: Int -> World -> World
 tx n = head . drop n . iterate tx1
 
 tx1 :: World -> World
-tx1 w@(World m) = World $ mapa transform m
+tx1 w = mapa transform w
 
   where
     mapa :: (Ix k, A.IArray u a, A.IArray u' b) => (k -> a -> b) -> u k a -> u' k b
     mapa f a = A.listArray (A.bounds a) (uncurry f <$> A.assocs a)
 
     transform :: (Int,Int) -> Thing -> Thing
-    transform p '.' = if atLeast p 3 trees then trees else open
-    transform p '|' = if atLeast p 3 lumberyard then lumberyard else trees
-    transform p '#' = if atLeast p 1 trees && atLeast p 1 lumberyard then lumberyard else open
+    transform p '.' | atLeast p 3 trees = trees
+    transform p '|' | atLeast p 3 lumberyard = lumberyard
+    transform p '#' | not (atLeast p 1 trees && atLeast p 1 lumberyard) = open
+    transform _ x = x
 
     atLeast :: (Int,Int) -> Int -> Thing -> Bool
     atLeast p = go (adjacent' w p)
       where
         go _ 0 _ = True
         go [] _ _ = False
-        go (x:xs) n t
-          | t == x = go xs (n-1) t
-          | otherwise = go xs n t
+        go (x:xs) n t = go xs (if t == x then n - 1 else n) t
 
 ofType :: World -> Thing -> Int
-ofType (World m) t = length $ filter (== t) (A.elems m)
+ofType w t = length $ filter (== t) (A.elems w)
 
 -- 467819
 part1 :: IO ()

@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, BangPatterns #-}
+
 module Day18Bench where
 
 import Criterion (Benchmark, bench, bgroup, env, nf, whnf, nfIO)
@@ -8,7 +10,7 @@ import Control.DeepSeq (NFData(..))
 import Day18
 
 instance NFData World where
-  rnf w@(World m) = w `seq` m `seq` ()
+  rnf !w = w `seq` ()
 
 tests :: [Benchmark]
 tests = [
