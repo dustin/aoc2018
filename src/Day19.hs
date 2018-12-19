@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Day19 where
@@ -176,25 +175,25 @@ getInput :: IO (Either String Program)
 getInput = A.parseOnly parseProg . pack <$> readFile "input/day19"
 
 evalOp :: Op -> Regs -> Regs
-evalOp (Op _ !f !params) !regs = f params regs
+evalOp (Op _ f params) regs = f params regs
 
 runOnce :: Program -> Int -> Regs -> (Int,Regs)
-runOnce (Program ir ops) !ip !regs = let regs' = sreg regs ir ip
-                                         op = ops V.! ip
-                                         rr = evalOp op regs' in
-                                       (1 + reg rr ir, rr)
+runOnce (Program ir ops) ip regs = let regs' = sreg regs ir ip
+                                       op = ops V.! ip
+                                       rr = evalOp op regs' in
+                                     (1 + reg rr ir, rr)
 
 execute :: Program -> Int -> Regs -> Regs
 execute p@(Program _ ops) ip iregs = go (ip,iregs)
   where
-    go !s@(i,rs)
+    go s@(i,rs)
       | i >= V.length ops = rs
       | otherwise = go $ runOnce p i rs
 
 tron :: Program -> Int -> Regs -> Int -> Regs
 tron p@(Program _ ops) ip iregs ticks = go ticks (ip,iregs)
   where
-    go t !s@(i,rs)
+    go t s@(i,rs)
       | t == 0 = rs
       | trace (show s) False = undefined
       | i >= V.length ops = rs
