@@ -6,7 +6,7 @@ import           Control.Applicative  (liftA3, (<|>))
 import           Control.Monad        (replicateM)
 import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
-import           Data.List            (foldl')
+import           Data.List            (intercalate, sort, union, foldl')
 import qualified Data.Map.Strict      as Map
 import           Data.Text            (Text, unpack, pack)
 import qualified Data.Vector as V
@@ -120,7 +120,35 @@ data Op = Op Text !Opfun !(Int,Int,Int)
 instance Show Op where
   show (Op t _ p) = unpack t <> " " <> show p
 
-data Program = Program Int (V.Vector Op) deriving (Show)
+data Program = Program Int (V.Vector Op)
+
+instance Show Program where
+  show (Program ir ops) = "IR=" <> show ir <> "\n" <> (intercalate "\n" (opss 0 (V.toList ops)))
+    where
+      opss _ [] = []
+      opss o (op@(Op n _ (a,b,c)):xs) = anop op o : opss (o+1) xs
+
+      anop (Op "addi" _ a) ip = icmd "addi" a "+" ip
+      anop (Op "addr" _ a) ip = rcmd "addr" a "+" ip
+      anop (Op "muli" _ a) ip = icmd "muli" a "*" ip
+      anop (Op "mulr" _ a) ip = rcmd "mulr" a "*" ip
+      anop (Op "eqrr" _ a) ip = cmprr "eqrr" a "==" ip
+      anop (Op "gtrr" _ a) ip = cmprr "gtrr" a ">" ip
+      anop (Op "seti" _ (a,b,c)) ip = unwords ["seti", l a, l b, l c, " ", l ip, r c, "=", l a]
+      anop (Op "setr" _ (a,b,c)) ip = unwords ["setr", l a, l b, l c, " ", l ip, r c, "=", r a]
+      anop (Op n _ (a,b,c)) ip = unwords [unpack n, l a, l b, l c, " ", l ip]
+
+      icmd name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, l b]
+      rcmd name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, r b]
+      cmprr name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, r b, " ? 1 : 0"]
+
+      r x
+        | x == ir = "IR"
+        | otherwise = "r" <> show x -- register
+      l = show -- literal
+      maybir x
+        | x == ir = "IR"
+        | otherwise = show x
 
 parseProg :: A.Parser Program
 parseProg = do
@@ -133,13 +161,15 @@ parseProg = do
     op :: A.Parser Op
     op = do
       iname <- A.takeTill (== ' ')
-      params <- nums
+      params <- nums <* comment
       pure $ Op iname (namedOps Map.! iname) params
 
     nums :: A.Parser (Int,Int,Int)
     nums = liftA3 (,,) num num num
     num :: A.Parser Int
     num = A.skipSpace *> A.decimal
+    comment :: A.Parser Text
+    comment = A.takeTill (== '\n')
 
 getInput :: IO (Either String Program)
 getInput = A.parseOnly parseProg . pack <$> readFile "input/day19"
@@ -160,13 +190,30 @@ execute p@(Program _ ops) ip iregs = go (ip,iregs)
       | i >= V.length ops = rs
       | otherwise = go $ runOnce p i rs
 
+tron :: Program -> Int -> Regs -> Int -> Regs
+tron p@(Program _ ops) ip iregs ticks = go ticks (ip,iregs)
+  where
+    go t !s@(i,rs)
+      | t == 0 = rs
+      | trace (show s) False = undefined
+      | i >= V.length ops = rs
+      | otherwise = go (t-1) $ runOnce p i rs
+
+
 -- (2520,865,1,865,256,864)
 part1 :: IO ()
 part1 = do
   (Right prog) <- getInput
   print $ execute prog 0 (0,0,0,0,0,0)
 
+-- 27941760
 part2 :: IO ()
-part2 = do
-  (Right prog) <- getInput
-  print $ execute prog 0 (1,0,0,0,0,0)
+part2 = print $ foldl (\o x -> o + x) 0 (sort $ divisors 10551264) + 10551264
+
+divisors 1 = [1]
+divisors 2 = [1]
+divisors n = let lower = [x | x <- [2..isqrt n], n `mod` x == 0] in
+               sort $ 1 : union lower (map (div n) lower)
+  where
+    isqrt :: Integer -> Integer
+    isqrt = ceiling . sqrt . fromIntegral
