@@ -16,6 +16,8 @@ tests :: [Benchmark]
 tests = [
   env getInput $ \ ~w -> bgroup "worldly" [
       bench "transform" $ nf tx1 w,
-      bench "100th" $ nf (tx 100) w
+      bench "100th" $ nf (tx 100) w,
+      bench "scoring" $ nf score w,
+      bench "part2" $ nf part2' w
       ]
   ]

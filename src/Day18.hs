@@ -21,18 +21,12 @@ type World = A.UArray (Int,Int) Thing
 bounds :: World -> (Int,Int)
 bounds w = snd $ A.bounds w
 
-adjacent :: World -> (Int,Int) -> [(Int,Int)]
-adjacent w (x,y) = [(x + n, y + m) | n <- [-1..1], m <- [-1..1],
-                    not (n == 0 && m == 0)]
-  where (mx,my) = bounds w
-
-adjacent' :: World -> (Int,Int) -> [Thing]
-adjacent' w p = mapMaybe lu $ adjacent w p
-  where
-    (mxx, mxy) = bounds w
-    lu p'@(x,y)
-      | x < 0 || y < 0 || x > mxx || y > mxy = Nothing
-      | otherwise = Just (w A.! p')
+adjacent :: (Int,Int) -> [(Int,Int)]
+adjacent (x,y) = x `seq` [
+  (x-1, y+1), (x,y+1), (x+1, y+1),
+  (x-1, y),            (x+1, y),
+  (x-1, y-1), (x,y-1), (x+1, y-1)
+  ]
 
 draw :: World -> String
 draw w = intercalate "\n" $ map row [0..my]
@@ -66,12 +60,14 @@ tx1 w = mapa transform w
     transform p '#' | not (atLeast p 1 trees && atLeast p 1 lumberyard) = open
     transform _ x = x
 
+    is p t = (A.inRange . A.bounds) w p && t == w A.! p
+
     atLeast :: (Int,Int) -> Int -> Thing -> Bool
-    atLeast p = go (adjacent' w p)
+    atLeast p = go (adjacent p)
       where
         go _ 0 _ = True
         go [] _ _ = False
-        go (x:xs) n t = go xs (if t == x then n - 1 else n) t
+        go (x:xs) n t = go xs (if is x t then n - 1 else n) t
 
 ofType :: World -> Thing -> Int
 ofType w t = length $ filter (== t) (A.elems w)
