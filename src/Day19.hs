@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, BangPatterns #-}
 
 module Day19 where
 
@@ -8,7 +8,7 @@ import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
 import           Data.List            (foldl')
 import qualified Data.Map.Strict      as Map
-import           Data.Text            (Text, pack)
+import           Data.Text            (Text, unpack, pack)
 import qualified Data.Vector as V
 import Debug.Trace (trace)
 
@@ -115,7 +115,10 @@ namedOps = Map.fromList $ zip opNames allOps
 -- Stuff for part1.
 --
 
-data Op = Op Text (Int,Int,Int) deriving (Show)
+data Op = Op Text !Opfun !(Int,Int,Int)
+
+instance Show Op where
+  show (Op t _ p) = unpack t <> " " <> show p
 
 data Program = Program Int (V.Vector Op) deriving (Show)
 
@@ -128,7 +131,11 @@ parseProg = do
 
   where
     op :: A.Parser Op
-    op = Op <$> A.takeTill (== ' ') <*> nums
+    op = do
+      iname <- A.takeTill (== ' ')
+      params <- nums
+      pure $ Op iname (namedOps Map.! iname) params
+
     nums :: A.Parser (Int,Int,Int)
     nums = liftA3 (,,) num num num
     num :: A.Parser Int
@@ -138,18 +145,18 @@ getInput :: IO (Either String Program)
 getInput = A.parseOnly parseProg . pack <$> readFile "input/day19"
 
 evalOp :: Op -> Regs -> Regs
-evalOp (Op iname params) regs = (namedOps Map.! iname) params regs
+evalOp (Op _ !f !params) !regs = f params regs
 
 runOnce :: Program -> Int -> Regs -> (Int,Regs)
-runOnce (Program ir ops) ip regs = let regs' = sreg regs ir ip
-                                       op = ops V.! ip
-                                       rr = evalOp op regs' in
-                                     (1 + reg rr ir, rr)
+runOnce (Program ir ops) !ip !regs = let regs' = sreg regs ir ip
+                                         op = ops V.! ip
+                                         rr = evalOp op regs' in
+                                       (1 + reg rr ir, rr)
 
-haltingProblem :: Program -> Regs
-haltingProblem p@(Program _ ops) = go (0,(0,0,0,0,0,0))
+execute :: Program -> Int -> Regs -> Regs
+execute p@(Program _ ops) ip iregs = go (ip,iregs)
   where
-    go s@(i,rs)
+    go !s@(i,rs)
       | i >= V.length ops = rs
       | otherwise = go $ runOnce p i rs
 
@@ -157,4 +164,9 @@ haltingProblem p@(Program _ ops) = go (0,(0,0,0,0,0,0))
 part1 :: IO ()
 part1 = do
   (Right prog) <- getInput
-  print $ haltingProblem prog
+  print $ execute prog 0 (0,0,0,0,0,0)
+
+part2 :: IO ()
+part2 = do
+  (Right prog) <- getInput
+  print $ execute prog 0 (1,0,0,0,0,0)
