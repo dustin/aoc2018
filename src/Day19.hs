@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, BangPatterns #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Day19 where
 
@@ -6,11 +7,11 @@ import           Control.Applicative  (liftA3, (<|>))
 import           Control.Monad        (replicateM)
 import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
-import           Data.List            (intercalate, sort, union, foldl')
+import           Data.List            (foldl', intercalate, union)
 import qualified Data.Map.Strict      as Map
-import           Data.Text            (Text, unpack, pack)
-import qualified Data.Vector as V
-import Debug.Trace (trace)
+import           Data.Text            (Text, pack, unpack)
+import qualified Data.Vector          as V
+import           Debug.Trace          (trace)
 
 type Params = (Int,Int,Int)
 
@@ -34,7 +35,7 @@ sreg (a,b,c,d,e,f) 2 v = (a,b,v,d,e,f)
 sreg (a,b,c,d,e,f) 3 v = (a,b,c,v,e,f)
 sreg (a,b,c,d,e,f) 4 v = (a,b,c,d,v,f)
 sreg (a,b,c,d,e,f) 5 v = (a,b,c,d,e,v)
-sreg r _ _           = r
+sreg r _ _             = r
 
 rcmd :: (Int->Int->Int) -> Params -> Regs -> Regs
 rcmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) (reg regs vb)
@@ -125,7 +126,7 @@ data Program = Program Int (V.Vector Op)
 instance Show Program where
   show (Program ir ops) = "IR=" <> show ir <> "\n" <> (intercalate "\n" (opss 0 (V.toList ops)))
     where
-      opss _ [] = []
+      opss _ []                       = []
       opss o (op@(Op n _ (a,b,c)):xs) = anop op o : opss (o+1) xs
 
       anop (Op "addi" _ a) ip = icmd "addi" a "+" ip
@@ -208,12 +209,14 @@ part1 = do
 
 -- 27941760
 part2 :: IO ()
-part2 = print $ foldl (\o x -> o + x) 0 (sort $ divisors 10551264) + 10551264
+part2 = print $ sum (divisors 10551264)
 
+divisors :: (Integral a, Eq a) => a -> [a]
 divisors 1 = [1]
 divisors 2 = [1]
-divisors n = let lower = [x | x <- [2..isqrt n], n `mod` x == 0] in
-               sort $ 1 : union lower (map (div n) lower)
+divisors n = let lower = [x | x <- [1..isqrt n], n `mod` x == 0] in
+               lower `union` (map (div n) lower)
+
   where
-    isqrt :: Integer -> Integer
+    isqrt :: Integral a => a -> a
     isqrt = ceiling . sqrt . fromIntegral
