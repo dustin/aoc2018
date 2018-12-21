@@ -10,14 +10,15 @@ module Elfcode (Params, Regs, Opfun, Op,
                 execUntil,
                 tron,
                 runOnce,
-                allOps
+                allOps,
+                align
                 )
 where
 
 import           Control.Applicative  (liftA3)
 import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
-import           Data.List            (intercalate)
+import           Data.List            (intercalate, transpose)
 import qualified Data.Map.Strict      as Map
 import           Data.Text            (Text, unpack)
 import qualified Data.Vector          as V
@@ -144,8 +145,22 @@ data Program = Program !Int !(V.Vector Op) deriving (Eq, Generic)
 
 instance NFData Program
 
+align :: String -> String
+align s = unlines . map padded $ lnscls
+  where
+    lns = lines s
+    strip = reverse . dropWhile (== ' ') . reverse
+    padded = strip . unwords . (zipWith (\n w -> w <> replicate (n - length w) ' ') colens)
+    lnscls = map cols lns
+    colens = map (maximum . map length) $ transpose lnscls
+    cols [] = []
+    cols l = w : cols (tail' s')
+      where (w, s') = break (== '\t') l
+            tail' []     = []
+            tail' (_:xs) = xs
+
 instance Show Program where
-  show (Program ir ops) = "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
+  show (Program ir ops) = align $ "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
     where
       opss _ []                 = []
       opss o (op@(Op _ _ _):xs) = anop op o : opss (o+1) xs
@@ -161,14 +176,14 @@ instance Show Program where
       anop (Op "gtrr" _ a) ip = scmprr "gtrr" a ">" ip
       anop (Op "gtir" _ a) ip = scmpri "gtir" a ">" ip
       anop (Op "bani" _ a) ip = sicmd "bani" a "&" ip
-      anop (Op "seti" _ (a,b,c)) ip = unwords ["seti", l a, l b, l c, " ", l ip, r c, "=", l a]
-      anop (Op "setr" _ (a,b,c)) ip = unwords ["setr", l a, l b, l c, " ", l ip, r c, "=", r a]
-      anop (Op n _ (a,b,c)) ip = unwords [unpack n, l a, l b, l c, " ", l ip]
+      anop (Op "seti" _ (a,b,c)) ip = unwords ["seti", l a, l b, l c, "\t", l ip, r c, "=", l a]
+      anop (Op "setr" _ (a,b,c)) ip = unwords ["setr", l a, l b, l c, "\t", l ip, r c, "=", r a]
+      anop (Op n _ (a,b,c)) ip = unwords [unpack n, l a, l b, l c, "\t", l ip]
 
-      sicmd name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, l b]
-      srcmd name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, r b]
-      scmprr name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", r a, op, r b, " ? 1 : 0"]
-      scmpri name (a,b,c) op ip = unwords [name, l a, l b, l c, " ", l ip, r c, "=", l a, op, r b, " ? 1 : 0"]
+      sicmd name (a,b,c) op ip = unwords [name, l a, l b, l c, "\t", l ip, r c, "=", r a, op, l b]
+      srcmd name (a,b,c) op ip = unwords [name, l a, l b, l c, "\t", l ip, r c, "=", r a, op, r b]
+      scmprr name (a,b,c) op ip = unwords [name, l a, l b, l c, "\t", l ip, r c, "=", r a, op, r b, "? 1 : 0"]
+      scmpri name (a,b,c) op ip = unwords [name, l a, l b, l c, "\t", l ip, r c, "=", l a, op, r b, "? 1 : 0"]
 
       r x
         | x == ir = "IR"
