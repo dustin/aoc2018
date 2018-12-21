@@ -140,7 +140,7 @@ instance Eq Op where
 instance Show Op where
   show (Op t _ p) = unpack t <> " " <> show p
 
-data Program = Program Int (V.Vector Op) deriving (Eq, Generic)
+data Program = Program !Int !(V.Vector Op) deriving (Eq, Generic)
 
 instance NFData Program
 
