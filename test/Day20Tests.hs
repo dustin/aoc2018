@@ -31,41 +31,11 @@ testParser =
                                   Sub [[Dirs [N]],
                                        [Dirs [S]]]]]]),
   ("^NE(S|)E$", Right [Dirs [N,E],
-                       Opt [[Dirs [S]]],
+                       Sub [[Dirs [S]]],
                        Dirs [E]]),
   ("^NE(S|W|)E$", Right [Dirs [N,E],
-                         Opt [[Dirs [S]], [Dirs [W]]],
+                         Sub [[Dirs [S]], [Dirs [W]]],
                          Dirs [E]])
-  ]
-
-
--- I ended up not using these things, but I liked them.
-
-cprod :: Monoid a => [a] -> [a] -> [a]
-cprod xs [] = xs
-cprod as bs = liftA2 (<>) as bs
-
-foldDirs :: Monoid a => ([Dir] -> a) -> TheMap -> [a]
-foldDirs f (TheMap ps) = go ps
-  where
-    go [] = [mempty]
-    go ((Dirs dirs):xs)
-      | null xs = [f dirs]
-      | otherwise = map (f dirs <>) $ go xs
-    go ((Sub ds):xs) =  cprod (foldMap go ds) $ go xs
-    go ((Opt ds):xs) = (cprod (foldMap go ds) $ go xs) <> go xs
-
-options :: TheMap -> [[Dir]]
-options = foldDirs id
-
-testOptions :: [TestTree]
-testOptions =
-    map (\(t, want) -> testCase (unpack t) $ assertEqual "" want (options <$> parse parseInput "" t)) [
-  ("^NE$", Right [[N,E]]),
-  ("^NE(E|S)$", Right [[N,E,E], [N,E,S]]),
-  ("^NE(E|S)N$", Right [[N,E,E,N], [N,E,S,N]]),
-  ("^NE(E|S|)N$", Right [[N,E,E,N], [N,E,S,N], [N,E,N]]),
-  ("^NE(E|S(W|E))N$", Right [[N,E,E,N], [N,E,S,W,N], [N,E,S,E,N]])
   ]
 
 testMostDoors :: [TestTree]
@@ -104,7 +74,6 @@ testPart2 = do
 tests :: [TestTree]
 tests = [
         testGroup "parser" testParser,
-        testGroup "options" testOptions,
         testGroup "most doors" testMostDoors,
         testGroup "connections" testConnections,
 

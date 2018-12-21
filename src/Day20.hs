@@ -20,7 +20,7 @@ import           Text.Megaparsec      (ParseError, Parsec, between, parse,
                                        sepBy)
 import           Text.Megaparsec.Char (char)
 
-data Directions = Dirs [Dir] | Sub [[Directions]] | Opt [[Directions]] deriving (Generic, Eq, Show)
+data Directions = Dirs [Dir] | Sub [[Directions]] deriving (Generic, Eq, Show)
 
 newtype TheMap = TheMap [Directions] deriving (Generic, Eq, Show)
 
@@ -48,7 +48,7 @@ parseInput = TheMap <$> ("^" *> subExpr <* "$")
     subDirs :: Parser Directions
     subDirs = do
       stuff <- between "(" ")" ((subExpr <|> ([] <$ "")) `sepBy` (char '|'))
-      pure $ (if last stuff == [] then Opt else Sub) $ filter (not . null) stuff
+      pure $ Sub $ filter (not . null) stuff
 
 type XY = (Int,Int)
 
@@ -71,7 +71,6 @@ connections (TheMap ps) = go ps (0,0) mempty
                               go xs np m'
 
     go (Sub ds:xs) p m = go xs p $ foldr (\d m' -> go d p m') m ds
-    go (Opt ds:xs) p m = go xs p $ foldr (\d m' -> go d p m') m ds
 
 reachable :: TheMap -> Map XY Int
 reachable tm = go mempty mempty 0 [(0,0)]
