@@ -1,0 +1,64 @@
+#ip 1
+seti 123 0 5         0 r5 = 123
+bani 5 456 5         1 r5 = r5 & 456             r5 = 72   COMEFROM 4, 30
+eqri 5 72 5          2 r5 = r5 == 72  ? 1 : 0    ----
+addr 5 1 1           3 IR = r5 + IR              if r5 == 72 goto 5
+seti 0 0 1           4 IR = 0                    goto 1
+seti 0 7 5           5 r5 = 0                    r5 = 0
+bori 5 65536 4       6 r4 = r5 * 65536           r4 = r5 * 0xffff       COMEFROM 27
+seti 13159625 6 5    7 r5 = 13159625             r5 = 13159625
+bani 4 255 3         8 r3 = r4 & 255             r3 = r4 & 0xff
+addr 5 3 5           9 r5 = r5 + r3              r5 += r3
+bani 5 16777215     10 r5 = r5 & 16777215        r6 &= 0xFFFFFF
+muli 5 65899 5      11 r5 = r5 * 65899           r5 *= 65899
+bani 5 16777215 5   12 r5 = r5 & 16777215        r5 &= 16777215
+gtir 256 4 3        13 r3 = 256 > r4  ? 1 : 0    ----
+addr 3 1 1          14 IR = r3 + IR              if r4 > 256 goto 28 (via 16)  else goto 17
+addi 1 1 1          15 IR = IR + 1               goto 17
+seti 27 9 1         16 IR = 27                   goto 28         COMEFROM 14
+seti 0 0 3          17 r3 = 0                    r3 = 0          COMEFROM 15
+addi 3 1 2          18 r2 = r3 + 1               r2 = r3 + 1     COMEFROM 25
+muli 2 256 2        19 r2 = r2 * 256             r2 *= 256
+gtrr 2 4 2          20 r2 = r2 > r4  ? 1 : 0     ----
+addr 2 1 1          21 IR = r2 + IR              if r2 > r4 goto 26 (via 23)
+addi 1 1 1          22 IR = IR + 1               goto 24
+seti 25 0 1         23 IR = 25                   goto 26
+addi 3 1 3          24 r3 = r3 + 1               r3++
+seti 17 4 1         25 IR = 17                   goto 18
+setr 3 3 4          26 r4 = r3                   r4 = r3
+seti 7 5 1          27 IR = 7                    goto 6
+eqrr 5 0 3          28 r3 = r5 == r0  ? 1 : 0    ----            COMEFROM 14
+addr 3 1 1          29 IR = r3 + IR              if r5 == r0 EXIT
+seti 5 6 1          30 IR = 5                    goto 4
+
+
+label2
+r5 &= 456
+
+label6
+r4 *= 0xffff
+r5 = 13159625   -- 0xC8CCC9
+r3 = r4 & 0xff
+r5 += r3
+r6 &= 0xffffff
+r5 *= 65899     -- 0x1016B
+
+if r4 > 256
+  label17:
+  r3 = 0
+  label18:
+  r2 = r3 + 1
+  r2 *= 256
+
+  if r2 > r4
+     r4 = r3
+     goto label6
+  else
+     r3++
+     goto label18
+
+  goto 18
+
+else (r4 <= 256)
+  if r5 == r0
+    EXIT
