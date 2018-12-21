@@ -8,6 +8,7 @@ import System.IO (IOMode(..), Handle, withFile)
 import Control.DeepSeq (NFData(..))
 
 import Day21
+import Elfcode
 
 inp :: IO Program
 inp = getInput >>= \(Right prog) -> pure prog
