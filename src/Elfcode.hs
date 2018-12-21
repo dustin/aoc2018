@@ -18,6 +18,7 @@ where
 import           Control.Applicative  (liftA3)
 import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
+import           Data.Char            (isSpace)
 import           Data.List            (intercalate, transpose)
 import qualified Data.Map.Strict      as Map
 import           Data.Text            (Text, unpack)
@@ -149,7 +150,7 @@ align :: String -> String
 align s = unlines . map padded $ lnscls
   where
     lns = lines s
-    strip = reverse . dropWhile (== ' ') . reverse
+    strip = reverse . dropWhile isSpace . reverse
     padded = strip . unwords . (zipWith (\n w -> w <> replicate (n - length w) ' ') colens)
     lnscls = map cols lns
     colens = map (maximum . map length) $ transpose lnscls
