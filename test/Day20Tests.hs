@@ -40,10 +40,13 @@ testParser =
 
 testMostDoors :: [TestTree]
 testMostDoors =
-  map (\(t, want) -> testCase (unpack t) $ assertEqual "" want (mostDoors <$> parse parseInput "" t)) [
+  map (\(t, want) -> testCase (shortn . unpack $ t) $ assertEqual "" want (mostDoors <$> parse parseInput "" t)) [
   ("^ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))$", Right 23),
   ("^WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))$", Right 31)
   ]
+  where shortn t
+          | length t > 30 = take 10 t <> "…"
+          | otherwise = t
 
 testConnections :: [TestTree]
 testConnections =
