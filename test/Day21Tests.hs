@@ -8,7 +8,20 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
+import qualified Data.Attoparsec.Text  as A
+import           Data.Text             (pack)
+
 import           Day21
+import           Elfcode
+
+getOrig :: IO (Either String Program)
+getOrig = A.parseOnly parseProg . pack <$> readFile "input/day21.orig"
+
+testInputIntegrity :: Assertion
+testInputIntegrity = do
+  o <- getOrig
+  n <- getInput
+  assertEqual "" o n
 
 testPart1 :: Assertion
 testPart1 = do
@@ -23,6 +36,7 @@ testPart2 = do
 
 tests :: [TestTree]
 tests = [
-        testCase "part1" testPart1
-        -- testCase "part2" testPart2 -- too slow
-        ]
+  testCase "input integrity" testInputIntegrity,
+  testCase "part1" testPart1
+  -- ,testCase "part2" testPart2 -- too slow
+  ]
