@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Day21 where
@@ -11,6 +12,8 @@ import qualified Data.Set             as Set
 import           Data.Text            (Text, pack, unpack)
 import qualified Data.Vector          as V
 import           Debug.Trace          (trace)
+import           GHC.Generics         (Generic)
+import           Control.DeepSeq      (NFData (..))
 
 type Params = (Int,Int,Int)
 
@@ -117,13 +120,18 @@ namedOps = Map.fromList $ zip opNames allOps
 
 data Op = Op Text !Opfun !(Int,Int,Int)
 
+instance NFData Op where
+  rnf op@(Op t _ p) = op `seq` op `seq` t `seq` p `seq` ()
+
 instance Eq Op where
   (Op na _ pa) == (Op nb _ pb) = na == nb && pa == pb
 
 instance Show Op where
   show (Op t _ p) = unpack t <> " " <> show p
 
-data Program = Program Int (V.Vector Op) deriving (Eq)
+data Program = Program Int (V.Vector Op) deriving (Eq, Generic)
+
+instance NFData Program
 
 instance Show Program where
   show (Program ir ops) = "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
@@ -241,8 +249,6 @@ part2' = go mempty 0 . findR5s
       | Set.member x seen = prev
       | otherwise = go (Set.insert x seen) x xs
 
-
--- 126174 is too low, 9811228 is too low
 part2 :: IO ()
 part2 = do
   (Right p) <- getInput
