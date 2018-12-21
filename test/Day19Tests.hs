@@ -9,6 +9,7 @@ import           Test.Tasty.QuickCheck as QC
 import           Data.List             (nub)
 
 import           Day19
+import           Elfcode
 
 prop_DivisorsDivide :: Positive Int -> Bool
 prop_DivisorsDivide (Positive x) = all (\n -> x `mod` n == 0) (divisors x)
