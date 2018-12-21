@@ -33,15 +33,17 @@ seti 5 6 1          30 IR = 5                    goto 4
 
 
 label2
-r5 &= 456
+r5 &= 456  -- 1c8
+
+part 1 answer: 3941014 --  2 x 7 x 11 x 157 x 163
 
 label6
 r4 *= 0xffff
-r5 = 13159625   -- 0xC8CCC9
+r5 = 13159625   -- 0xC8CCC9  -- 5 x 5 x 5 x 105277 
 r3 = r4 & 0xff
 r5 += r3
 r6 &= 0xffffff
-r5 *= 65899     -- 0x1016B
+r5 *= 65899     -- 0x1016B -- prime
 
 if r4 > 256
   label17:

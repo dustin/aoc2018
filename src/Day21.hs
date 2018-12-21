@@ -1,17 +1,16 @@
-{-# LANGUAGE OverloadedStrings, BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Day21 where
 
-import           Control.Applicative  (liftA3, (<|>))
-import           Control.Monad        (mapM_, replicateM)
+import           Control.Applicative  (liftA3)
 import qualified Data.Attoparsec.Text as A
 import           Data.Bits            ((.&.), (.|.))
-import           Data.List            (foldl', intercalate, union)
+import           Data.List            (intercalate)
 import qualified Data.Map.Strict      as Map
+import qualified Data.Set             as Set
 import           Data.Text            (Text, pack, unpack)
 import qualified Data.Vector          as V
 import           Debug.Trace          (trace)
-import Control.Parallel.Strategies    (parMap, using, rdeepseq)
 
 type Params = (Int,Int,Int)
 
@@ -29,12 +28,12 @@ reg (_,_,_,_,_,v) 5 = v
 reg _ _             = 0
 
 sreg :: Regs -> Int -> Int -> Regs
-sreg (a,b,c,d,e,f) 0 v = (v,b,c,d,e,f)
-sreg (a,b,c,d,e,f) 1 v = (a,v,c,d,e,f)
-sreg (a,b,c,d,e,f) 2 v = (a,b,v,d,e,f)
-sreg (a,b,c,d,e,f) 3 v = (a,b,c,v,e,f)
-sreg (a,b,c,d,e,f) 4 v = (a,b,c,d,v,f)
-sreg (a,b,c,d,e,f) 5 v = (a,b,c,d,e,v)
+sreg (_,b,c,d,e,f) 0 v = (v,b,c,d,e,f)
+sreg (a,_,c,d,e,f) 1 v = (a,v,c,d,e,f)
+sreg (a,b,_,d,e,f) 2 v = (a,b,v,d,e,f)
+sreg (a,b,c,_,e,f) 3 v = (a,b,c,v,e,f)
+sreg (a,b,c,d,_,f) 4 v = (a,b,c,d,v,f)
+sreg (a,b,c,d,e,_) 5 v = (a,b,c,d,e,v)
 sreg r _ _             = r
 
 rcmd :: (Int->Int->Int) -> Params -> Regs -> Regs
@@ -127,10 +126,10 @@ instance Show Op where
 data Program = Program Int (V.Vector Op) deriving (Eq)
 
 instance Show Program where
-  show (Program ir ops) = "#ip " <> show ir <> "\n" <> (intercalate "\n" (opss 0 (V.toList ops)))
+  show (Program ir ops) = "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
     where
       opss _ []                       = []
-      opss o (op@(Op n _ (a,b,c)):xs) = anop op o : opss (o+1) xs
+      opss o (op@(Op _ _ (a,b,c)):xs) = anop op o : opss (o+1) xs
 
       anop (Op "addi" _ a) ip = icmd "addi" a "+" ip
       anop (Op "addr" _ a) ip = rcmd "addr" a "+" ip
@@ -185,7 +184,7 @@ getInput :: IO (Either String Program)
 getInput = A.parseOnly parseProg . pack <$> readFile "input/day21"
 
 evalOp :: Op -> Regs -> Regs
-evalOp (Op _ f params) regs = f params regs
+evalOp (Op _ f params) = f params
 
 runOnce :: Program -> Int -> Regs -> (Int,Regs)
 runOnce (Program ir ops) ip regs = let regs' = sreg regs ir ip
@@ -200,15 +199,13 @@ execute p@(Program _ ops) ip iregs = go (ip,iregs)
       | i >= V.length ops = rs
       | otherwise = go $ runOnce p i rs
 
-execute' :: Program -> Int -> Regs -> Int -> (Int, Regs)
+execute' :: Program -> Int -> Regs -> Int -> (Int, Int, Regs)
 execute' p@(Program _ ops) ip iregs ticks = go 0 (ip,iregs)
   where
-    go t !s@(!i,!rs)
-      -- | t == ticks = (t,rs)
-      | i == 28 && trace ("r5: " <> show (reg rs 5)) False = undefined
-      | i >= V.length ops = (t,rs)
-      | otherwise = go (t+1) (runOnce p i rs)
-
+    go t s@(i,rs)
+      | t >= ticks = (0,i,rs)
+      | i >= V.length ops = (t,i,rs)
+      | otherwise = go (t+1) $ runOnce p i rs
 
 tron :: Program -> Int -> Regs -> Int -> Regs
 tron p@(Program _ ops) ip iregs ticks = go ticks (ip,iregs)
@@ -220,7 +217,7 @@ tron p@(Program _ ops) ip iregs ticks = go ticks (ip,iregs)
       | otherwise = go (t-1) $ runOnce p i rs
 
 execUntil :: Program -> ((Int,Regs) -> Bool) -> Int -> Regs -> (Int,Regs)
-execUntil p@(Program _ ops) f ip iregs = go (ip,iregs)
+execUntil p@(Program _ ops) f ip iregs = go $ runOnce p ip iregs
   where
     go s@(i,rs)
       | f s = s
@@ -228,14 +225,25 @@ execUntil p@(Program _ ops) f ip iregs = go (ip,iregs)
       | otherwise = go $ runOnce p i rs
 
 findR5s :: Program -> [Int]
-findR5s p = map (\(_,rs) -> reg rs 5) $ iterate (\(i,rs) ->
-                                                   execUntil p (\(ip,_) -> ip == 28) i rs) (0,(0,0,0,0,0,0))
-
-brutex :: Program -> Int -> [(Int,Int)]
-brutex p n = parMap rdeepseq (\x -> let (c,_) = execute' p 0 (x,0,0,0,0,0) n in (x,c)) [0..]
+findR5s p = map (\(_,rs) -> reg rs 5) $ iterate (uncurry (execUntil p (\(ip,_) -> ip == 28))) (0,(0,0,0,0,0,0))
 
 -- 3941014
 part1 :: IO ()
 part1 = do
   (Right p) <- getInput
   print $ (head . filter (/= 0) . findR5s) p
+
+
+part2' :: Program -> Int
+part2' = go mempty 0 . findR5s
+  where
+    go seen prev (x:xs)
+      | Set.member x seen = prev
+      | otherwise = go (Set.insert x seen) x xs
+
+
+-- 126174 is too low, 9811228 is too low
+part2 :: IO ()
+part2 = do
+  (Right p) <- getInput
+  print $ part2' p
