@@ -33,7 +33,7 @@ instance NFData TheMap
 type Parser = Parsec Void Text
 
 parseInput :: Parser TheMap
-parseInput = TheMap <$> ("^" *> subExpr <* "$")
+parseInput = TheMap <$> between "^" "$" subExpr
   where
 
     subExpr :: Parser [Directions]
@@ -47,16 +47,10 @@ parseInput = TheMap <$> ("^" *> subExpr <* "$")
 
     subDirs :: Parser Directions
     subDirs = do
-      stuff <- between "(" ")" ((subExpr <|> ([] <$ "")) `sepBy` (char '|'))
+      stuff <- between "(" ")" ((subExpr <|> [] <$ "") `sepBy` char '|')
       pure $ Sub $ filter (not . null) stuff
 
 type XY = (Int,Int)
-
-move :: XY -> Dir -> XY
-move (x,y) N = (x,y-1)
-move (x,y) S = (x,y+1)
-move (x,y) E = (x+1,y)
-move (x,y) W = (x-1,y)
 
 -- Build a map of every point and where you can get to from it.
 connections :: TheMap -> Map XY [XY]
@@ -64,13 +58,17 @@ connections (TheMap ps) = go ps (0,0) mempty
   where
     go :: [Directions] -> (Int,Int) -> Map XY [XY] -> Map XY [XY]
     go [] _ r = r
-
     go (Dirs dirs:xs) p m = let (np, conns) = foldl' (\(p',o) d ->
                                                         let p'' = move p' d in (p'', (p',[p'']):o)) (p,[]) dirs
-                                m' = Map.unionWith (union) m $ Map.fromList conns in
+                                m' = Map.unionWith union m $ Map.fromList conns in
                               go xs np m'
-
     go (Sub ds:xs) p m = go xs p $ foldr (\d m' -> go d p m') m ds
+
+    move :: XY -> Dir -> XY
+    move (x,y) N = (x,y-1)
+    move (x,y) S = (x,y+1)
+    move (x,y) E = (x+1,y)
+    move (x,y) W = (x-1,y)
 
 reachable :: TheMap -> Map XY Int
 reachable tm = go mempty mempty 0 [(0,0)]
@@ -82,7 +80,6 @@ reachable tm = go mempty mempty 0 [(0,0)]
     go _ r _ [] = r
     go seen r d (x:xs)
       | Set.member x seen    = go seen r d xs
-      | r Map.!? x > Just d  = go seen r d xs
       | otherwise            = let s' = Set.insert x seen
                                    lm = Map.insert x d r
                                    rm = go s' lm d xs in
@@ -92,7 +89,7 @@ mostDoors :: TheMap -> Int
 mostDoors = maximum . reachable
 
 getInput :: IO (Either (ParseError Char Void) TheMap)
-getInput = (parse parseInput "") . pack <$> readFile "input/day20"
+getInput = parse parseInput "" . pack <$> readFile "input/day20"
 
 -- 3872
 part1 :: IO ()
