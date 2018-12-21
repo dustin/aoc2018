@@ -2,15 +2,9 @@
 
 module Day21 where
 
-import           Control.Applicative  (liftA3)
 import qualified Data.Attoparsec.Text as A
-import           Data.Bits            ((.&.), (.|.))
-import           Data.List            (intercalate)
-import qualified Data.Map.Strict      as Map
 import qualified Data.Set             as Set
-import           Data.Text            (Text, pack, unpack)
-import qualified Data.Vector          as V
-import           Debug.Trace          (trace)
+import           Data.Text            (pack)
 
 import Elfcode
 
