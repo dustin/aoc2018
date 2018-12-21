@@ -151,14 +151,12 @@ align s = unlines . map padded $ lnscls
   where
     lns = lines s
     strip = reverse . dropWhile isSpace . reverse
-    padded = strip . unwords . (zipWith (\n w -> w <> replicate (n - length w) ' ') colens)
+    padded = strip . unwords . (zipWith (\n w -> take n (w <> repeat ' ')) colens)
     lnscls = map cols lns
     colens = map (maximum . map length) $ transpose lnscls
     cols [] = []
-    cols l = w : cols (tail' s')
+    cols l = w : cols (drop 1 s')
       where (w, s') = break (== '\t') l
-            tail' []     = []
-            tail' (_:xs) = xs
 
 instance Show Program where
   show (Program ir ops) = align $ "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
