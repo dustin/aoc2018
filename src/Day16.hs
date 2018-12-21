@@ -5,96 +5,11 @@ module Day16 where
 import           Control.Applicative  ((<|>))
 import           Control.Monad        (replicateM)
 import qualified Data.Attoparsec.Text as A
-import           Data.Bits            ((.&.), (.|.))
 import           Data.List            (foldl')
 import qualified Data.Map.Strict      as Map
-import           Data.Text            (Text, pack)
+import           Data.Text            (pack)
 
-type Params = (Int,Int,Int)
-
-type Regs = (Int,Int,Int,Int)
-
-type Opfun = Params -> Regs -> Regs
-
-reg :: Regs -> Int -> Int
-reg (v,_,_,_) 0 = v
-reg (_,v,_,_) 1 = v
-reg (_,_,v,_) 2 = v
-reg (_,_,_,v) 3 = v
-reg _ _         = 0
-
-sreg :: Regs -> Int -> Int -> Regs
-sreg (a,b,c,d) 0 v = (v,b,c,d)
-sreg (a,b,c,d) 1 v = (a,v,c,d)
-sreg (a,b,c,d) 2 v = (a,b,v,d)
-sreg (a,b,c,d) 3 v = (a,b,c,v)
-sreg r _ _         = r
-
-rcmd :: (Int->Int->Int) -> Params -> Regs -> Regs
-rcmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) (reg regs vb)
-
-icmd :: (Int->Int->Int) -> Params -> Regs -> Regs
-icmd f (va,vb,vc) regs = sreg regs vc $ f (reg regs va) vb
-
-cmpir :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmpir f (va,vb,vc) regs = sreg regs vc (if f va (reg regs vb) then 1 else 0)
-
-cmpri :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmpri f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) vb then 1 else 0)
-
-cmprr :: (Int -> Int -> Bool) -> Params -> Regs -> Regs
-cmprr f (va,vb,vc) regs = sreg regs vc (if f (reg regs va) (reg regs vb) then 1 else 0)
-
-addr :: Opfun
-addr = rcmd (+)
-
-addi :: Opfun
-addi = icmd (+)
-
-mulr :: Opfun
-mulr = rcmd (*)
-
-muli :: Opfun
-muli = icmd (*)
-
-banr :: Opfun
-banr = rcmd (.&.)
-
-bani :: Opfun
-bani = icmd (.&.)
-
-borr :: Opfun
-borr = rcmd (.|.)
-
-bori :: Opfun
-bori = icmd (.|.)
-
-setr :: Opfun
-setr = rcmd const
-
-seti :: Opfun
-seti (va,_,vc) regs = sreg regs vc va
-
-gtir :: Opfun
-gtir = cmpir (>)
-
-gtri :: Opfun
-gtri = cmpri (>)
-
-gtrr :: Opfun
-gtrr = cmprr (>)
-
-eqir :: Opfun
-eqir = cmpir (==)
-
-eqri :: Opfun
-eqri = cmpri (==)
-
-eqrr :: Opfun
-eqrr = cmprr (==)
-
-allOps :: [Opfun]
-allOps = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr]
+import           Elfcode
 
 --
 -- Stuff for part1.
@@ -110,10 +25,10 @@ parseTest = do
 
   pure $ Test (rs a) (rs b) (rs c)
 
-  where rs [a,b,c,d] = (a,b,c,d)
+  where rs [a,b,c,d] = (a,b,c,d,0,0)
 
 evalTest :: Test -> Opfun -> Bool
-evalTest (Test before (op,v1,v2,v3) after) f =
+evalTest (Test before (_,v1,v2,v3,0,0) after) f =
   let nregs = f (v1,v2,v3) before in
     reg after v3 == reg nregs v3
 
@@ -144,12 +59,12 @@ fit f = go []
     go r ks (x:xs) = foldr (\(k,ks') o ->go ((k,x):r) ks' xs <|> o)
                      Nothing (filter (\(k,_) -> f k x) $ select ks)
 
-    select [] = []
+    select []     = []
     select (x:xs) = [(x,xs)] <> (fmap (x:) <$> select xs)
 
 
 groupTests :: [Test] -> Map.Map Int [Test]
-groupTests tests = Map.fromListWith (<>) $ map (\t@(Test _ (o,_,_,_) _) -> (o,[t])) tests
+groupTests tests = Map.fromListWith (<>) $ map (\t@(Test _ (o,_,_,_,_,_) _) -> (o,[t])) tests
 
 figureOutOpcodes :: [Test] -> Maybe (Map.Map Int Opfun)
 figureOutOpcodes tests = Map.fromList <$> fit passesSome (Map.keys gt) allOps
@@ -162,26 +77,26 @@ figureOutOpcodes tests = Map.fromList <$> fit passesSome (Map.keys gt) allOps
     passesSome i f = all (`evalTest` f) $ gt' Map.! i
 
 
-data Program = Program [Test] [Regs]
+data Prog = Prog [Test] [Regs]
 
-parseProgram :: A.Parser Program
+parseProgram :: A.Parser Prog
 parseProgram = do
   tests <- A.many1 parseTest
   _ <- A.skipSpace
   regs <- A.many1 reg
 
-  pure $ Program tests (map rs regs)
+  pure $ Prog tests (map rs regs)
 
   where reg = replicateM 4 (A.decimal <* A.skipSpace)
-        rs [a,b,c,d] = (a,b,c,d)
+        rs [a,b,c,d] = (a,b,c,d,0,0)
 
-getInput2 :: IO (Either String Program)
+getInput2 :: IO (Either String Prog)
 getInput2 = A.parseOnly parseProgram . pack <$> readFile "input/day16"
 
-part2' :: Program -> Regs
-part2' (Program tests inputs) =
+part2' :: Prog -> Regs
+part2' (Prog tests inputs) =
   let (Just opcodes) = figureOutOpcodes tests in
-    foldl' (\r (op,va,vb,vc) -> (opcodes Map.! op) (va,vb,vc) r) (0,0,0,0) inputs
+    foldl' (\r (op,va,vb,vc,_,_) -> (opcodes Map.! op) (va,vb,vc) r) (0,0,0,0,0,0) inputs
 
 -- (629,629,4,2)
 part2 :: IO ()

@@ -18,7 +18,7 @@ testPart1 = do
 testPart2 :: Assertion
 testPart2 = do
   (Right p) <- getInput2
-  assertEqual "" (629,629,4,2) $ part2' p
+  assertEqual "" (629,629,4,2,0,0) $ part2' p
 
 tests :: [TestTree]
 tests = [

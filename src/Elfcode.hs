@@ -9,7 +9,9 @@ module Elfcode (Params, Regs, Opfun, Op,
                 execute',
                 execUntil,
                 tron,
-                runOnce)
+                runOnce,
+                allOps
+                )
 where
 
 import           Control.Applicative  (liftA3)
@@ -145,7 +147,7 @@ instance NFData Program
 instance Show Program where
   show (Program ir ops) = "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
     where
-      opss _ []                       = []
+      opss _ []                 = []
       opss o (op@(Op _ _ _):xs) = anop op o : opss (o+1) xs
 
       anop (Op "addi" _ a) ip = sicmd "addi" a "+" ip
