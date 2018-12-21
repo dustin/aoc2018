@@ -124,10 +124,13 @@ getInput :: IO (Either String [Test])
 getInput = A.parseOnly (A.many1 parseTest) . pack <$> readFile "input/day16"
 
 -- 563
+part1' :: [Test] -> Int
+part1' = length . filter (>= 3) . map (length . matches)
+
 part1 :: IO ()
 part1 = do
   (Right tests) <- getInput
-  print $ length . filter (>= 3) . map (length . matches) $ tests
+  print $ part1' tests
 
 --
 -- Stuff for part 2 below.
@@ -175,11 +178,13 @@ parseProgram = do
 getInput2 :: IO (Either String Program)
 getInput2 = A.parseOnly parseProgram . pack <$> readFile "input/day16"
 
+part2' :: Program -> Regs
+part2' (Program tests inputs) =
+  let (Just opcodes) = figureOutOpcodes tests in
+    foldl' (\r (op,va,vb,vc) -> (opcodes Map.! op) (va,vb,vc) r) (0,0,0,0) inputs
+
 -- (629,629,4,2)
 part2 :: IO ()
 part2 = do
-  (Right (Program tests inputs)) <- getInput2
-  let (Just opcodes) = figureOutOpcodes tests
-  let r = foldl' (\r (op,va,vb,vc) ->
-                     (opcodes Map.! op) (va,vb,vc) r) (0,0,0,0) inputs
-  print r
+  (Right p) <- getInput2
+  print $ part2' p
