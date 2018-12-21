@@ -24,11 +24,14 @@ dependencies:
 
 library:
   source-dirs: src
+  ghc-options:
+  - -Wall
   dependencies:
     - containers
     - vector
     - edit-distance
     - text
+    - deepseq
     - attoparsec
     - time
     - parallel
@@ -36,6 +39,7 @@ library:
     - extra
     - array
     - JuicyPixels
+    - megaparsec
 
 executables:
   aoc:
@@ -65,6 +69,9 @@ tests:
     - tasty-hunit
     - tasty-quickcheck
     - tasty-golden
+    - megaparsec
+    - text
+    - containers
 
 benchmarks:
   aoc-bench:
@@ -72,6 +79,8 @@ benchmarks:
     - aoc
     - criterion
     - deepseq
+    - megaparsec
+    - text
     ghc-options:
     - -O2
     - -rtsopts
