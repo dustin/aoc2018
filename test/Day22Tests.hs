@@ -10,17 +10,15 @@ import           Test.Tasty.QuickCheck as QC
 
 import           Day22
 
-import qualified Data.Array          as A
+import qualified Data.Array            as A
+import qualified Data.Map.Strict       as Map
 
 gel :: Survey -> (Int,Int) -> Int
-gel (Survey a) p = snd $ a A.! p
-
-ggi :: Survey -> (Int,Int) -> Int
-ggi (Survey a) p = fst $ a A.! p
+gel (Survey a) p = a A.! p
 
 testExample :: Assertion
 testExample = do
-  let s@(Survey a) = survey (10,10,510)
+  let s@(Survey a) = survey (10,10,510) (10,10)
   assertEqual "0,0 el" 510 (gel s (0,0))
   assertEqual "0,0 t" Rocky $ cellType s (0,0)
 
@@ -38,18 +36,26 @@ testExample = do
 
   assertEqual "risk" 114 (riskLevel s)
 
+testExampleP2 :: Assertion
+testExampleP2 = do
+  let s = survey (10,10,510) (20,20)
+      m = mapCosts s ((0,0),Torch) ((10,10),Torch)
+
+  assertEqual "" 45 $ m Map.! ((10,10),Torch)
+
 testPart1 :: Assertion
 testPart1 = do
   assertEqual "" 7299 $ riskLevel myCave
 
 testPart2 :: Assertion
 testPart2 = do
-  pure ()
+  assertEqual "" 1008 part2'
 
 
 tests :: [TestTree]
 tests = [
   testCase "example" testExample,
+  testCase "example part 2" testExampleP2,
   testCase "part1" testPart1,
   testCase "part2" testPart2
   ]

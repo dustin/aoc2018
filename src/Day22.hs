@@ -2,37 +2,164 @@
 
 module Day22 where
 
+import           Control.Applicative (liftA2)
 import qualified Data.Array          as A
+import           Data.Foldable       (minimumBy)
+import           Data.List           (intercalate)
+import           Data.Map            (Map)
+import qualified Data.Map.Strict     as Map
+import           Data.Ord            (comparing)
+import qualified Data.PQueue.Min     as Q
+import           Data.Set            (Set)
+import qualified Data.Set            as Set
 
-data Type = Rocky | Wet | Narrow deriving (Eq, Enum, Bounded, Show)
+import           Elfcode             (align)
 
-type Cell = (Int,Int) -- geologic index, erosion level
+data Type = Rocky | Wet | Narrow deriving (Eq, Ord, Enum, Bounded, Show)
+
+type Cell = Int -- erosion level
 
 type CaveSpec = (Int,Int,Int) -- X, Y, Depth
 
-newtype Survey = Survey (A.Array (Int,Int) Cell) deriving (Show)
+type XY = (Int,Int)
 
-survey :: CaveSpec -> Survey
-survey (tx,ty,depth) = Survey $ mkArry
+newtype Survey = Survey (A.Array XY Cell) deriving (Show)
+
+data Tool = Gear | Torch | Neither deriving (Bounded, Ord, Enum, Eq, Show)
+
+alles :: (Bounded a, Enum a) => [a]
+alles = [minBound .. maxBound]
+
+compatible :: Tool -> Type -> Bool
+compatible Gear Rocky     = True
+compatible Torch Rocky    = True
+compatible Gear Wet       = True
+compatible Neither Wet    = True
+compatible Torch Narrow   = True
+compatible Neither Narrow = True
+compatible _ _            = False
+
+compatibleWith :: Type -> [Tool]
+compatibleWith t = filter (flip compatible t) alles
+
+compatMap :: Map (Type,Type) Tool
+compatMap = Map.fromList [((t1,t2),tool)
+                         | t1 <- alles, t2 <- alles, tool <- alles,
+                           t1 /= t2, compatible tool t1, compatible tool t2]
+
+altTool :: Tool -> Type -> Type -> Tool
+altTool t t1 t2 = head $ filter (\t' -> compatible t' t1 && compatible t' t2 && t /= t') alles
+
+adjacent :: XY -> [XY]
+adjacent (x,y) = x `seq` [ (x,y+1), (x-1, y), (x+1, y), (x,y-1) ]
+
+bounded :: XY -> [XY] -> [XY]
+bounded (xmax,ymax) = filter inbound
+  where
+    inbound (x,y) = x >= 0 && y >= 0 && x <= xmax && y <= ymax
+
+survey :: CaveSpec -> (Int,Int) -> Survey
+survey (tx,ty,depth) (w,h) = Survey $ mkArry
 
   where
-    mkArry :: A.Array (Int,Int) Cell
-    mkArry = let a = A.array ((0,0),(tx,ty)) [((x,y), cell a (x,y)) | x <- [0..tx], y <- [0..ty]] in a
+    mkArry :: A.Array XY Cell
+    mkArry = let a = A.array ((0,0),(w,h)) [((x,y), cell a (x,y)) | x <- [0..w], y <- [0..h]] in a
 
-    cell :: A.Array (Int,Int) Cell -> (Int,Int) -> Cell
+    cell :: A.Array XY Cell -> XY -> Cell
     cell a (x,y)
-      | x == 0 && y == 0 = (0, el 0)
-      | x == tx && y == ty = (0, el 0)
-      | x == 0 = let g = y * 48271 in (g, el g)
-      | y == 0 = let g = x * 16807 in (g, el g)
-      | otherwise = let (_,elx) = a A.! (x-1,y)
-                        (_,ely) = a A.! (x,y-1)
-                        g = elx * ely in (g, el g)
+      | x == 0 && y == 0 = el 0
+      | x == tx && y == ty = el 0
+      | x == 0 = let g = y * 48271 in el g
+      | y == 0 = let g = x * 16807 in el g
+      | otherwise = let elx = a A.! (x-1,y)
+                        ely = a A.! (x,y-1) in
+                      el (elx * ely)
 
     el g = (g + depth) `mod` 20183
 
-cellType :: Survey -> (Int,Int) -> Type
-cellType (Survey a) p = let (_,el) = a A.! p in cellType' el
+type XYT = (XY,Tool)
+
+drawSurvey :: Survey -> Map XY Char -> String
+drawSurvey s@(Survey a) overlay = intercalate "\n" $ map row [0..my]
+
+    where
+      (_,(mx,my)) = A.bounds a
+      row y = map (\x -> ct (x,y)) [0..mx]
+
+      ct p
+        | Map.member p overlay = overlay Map.! p
+        | otherwise = case cellType s p of
+                        Rocky  -> '.'
+                        Wet    -> '='
+                        Narrow -> '|'
+
+
+drawCostMap :: Map XYT Int -> String
+drawCostMap m = hdr <> (align $ intercalate "\n" $ map row [0..my])
+  where
+    hdr = (show (alles :: [Tool])) <> "\n"
+    ks = Map.keys m
+    mx = maximum $ map (fst.fst) ks
+    my = maximum $ map (snd.fst) ks
+
+    row y = intercalate "\t" [cell (x,y) | x <- [0..mx]]
+
+    cell (x,y) = intercalate "," [ns $ Map.findWithDefault (-1) ((x,y),t) m | t <- alles]
+
+    ns (-1) = "∞"
+    ns x    = show x
+
+changeCost :: Int
+changeCost = 8
+
+mapCosts :: Survey -> XYT -> XYT -> Map XYT Int
+mapCosts s@(Survey a) origin destt = go (Q.singleton (0,origin)) (Map.singleton origin 0) mempty
+  where
+    (_,abounds) = A.bounds a
+    moveswc :: XYT -> [(Int,XYT)]
+    moveswc (p,t) = concatMap aMove (moves p)
+      where
+        moves = bounded abounds . adjacent
+        aMove :: XY -> [(Int,XYT)]
+        aMove xy
+          | compatible t ct = [(1,(xy,t)), (changeCost,(xy, altTool t ct (cellType s xy)))]
+          | otherwise = let nt = compatMap Map.! (cellType s p, ct) in [(changeCost,(xy,nt))]
+            where ct = cellType s xy
+
+    go :: Q.MinQueue (Int,XYT) -> Map XYT Int -> Set XYT -> Map XYT Int
+    go q m seen
+      | Q.null q = m
+      | pt == destt = m'
+      | Set.member pt seen = go odo m seen
+      | otherwise = go (odo `Q.union` psd) m' (Set.insert pt seen)
+
+      where
+        ([(d,pt)], odo) = Q.splitAt 1 q
+        moves = moveswc pt
+        m' = Map.unionWith min m $ Map.fromList $ map (\(c,xyt) -> (xyt,c+d)) moves
+        psd = Q.fromList $ fmap (\(c,x) -> (c + d, x)) moves
+
+path :: Map XYT Int -> XYT -> XYT -> [XYT]
+path m frm = go
+  where
+    go :: XYT -> [XYT]
+    go pt@(xy,_)
+      | pt == frm = []
+      | otherwise = best : go best
+      where
+        best :: XYT
+        best = minimumBy (comparing (\x' -> Map.findWithDefault 999999 x' m)) $ liftA2 (,) (adjacent xy) alles
+
+pathOverlay :: XY -> [XYT] -> Map XY Char
+pathOverlay dxy p = Map.fromList ((dxy,'@') : fmap (st <$>) p)
+  where
+    st :: Tool -> Char
+    st Gear    = 'G'
+    st Torch   = 'T'
+    st Neither = 'X'
+
+cellType :: Survey -> XY -> Type
+cellType (Survey a) p = let el = a A.! p in cellType' el
 
 cellType' :: Int -> Type
 cellType' el = case el `mod` 3 of
@@ -41,12 +168,20 @@ cellType' el = case el `mod` 3 of
                  2 -> Narrow
 
 riskLevel :: Survey -> Int
-riskLevel (Survey a) = sum $ fmap (fromEnum . cellType' . snd) a
+riskLevel (Survey a) = sum $ fmap (fromEnum . cellType') a
 
 myCave :: Survey
-myCave = survey (9,731,11109)
+myCave = survey (9,731,11109) (9,731)
 
 part1 :: IO ()
-part1 = do
-  print $ riskLevel myCave
+part1 = print $ riskLevel myCave
 
+part2' :: Int
+part2' = let frm = ((0,0),Torch)
+             to = ((9,731),Torch)
+             s = survey (9,731,11109) (9 + (7*4), 731 + (7*4))
+             m = mapCosts s frm to in
+  m Map.! to
+
+part2 :: IO ()
+part2 = print part2'
