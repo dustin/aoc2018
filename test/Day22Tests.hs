@@ -36,6 +36,21 @@ testExample = do
 
   assertEqual "risk" 114 (riskLevel s)
 
+testPathResolution :: Assertion
+testPathResolution = do
+  let s = survey (10,10,510) (20,20)
+      Just (c,(st:path)) = dijkstra (neighbors s) ((0,0),Torch) ((10,10),Torch)
+
+  assertEqual "cost" 45 c
+  assertEqual "path cost" 45 (pathCost st path)
+
+  where
+    pathCost :: XYT -> [XYT] -> Int
+    pathCost _ [] = 0
+    pathCost (_,t) (h@(_,t'):xs)
+      | t == t' = 1 + pathCost h xs
+      | otherwise = 8 + pathCost h xs
+
 testExampleP2 :: Assertion
 testExampleP2 = do
   let s = survey (10,10,510) (20,20)
@@ -56,6 +71,7 @@ tests :: [TestTree]
 tests = [
   testCase "example" testExample,
   testCase "example part 2" testExampleP2,
+  testCase "example path resolution" testPathResolution,
   testCase "part1" testPart1,
   testCase "part2" testPart2
   ]

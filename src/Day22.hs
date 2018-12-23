@@ -3,8 +3,6 @@
 module Day22 where
 
 import qualified Data.Array          as A
-import           Data.Foldable       (minimumBy)
-import           Data.Function       (on)
 import           Data.List           (intercalate)
 import           Data.Map            (Map)
 import qualified Data.Map.Strict     as Map
@@ -108,36 +106,36 @@ drawCostMap m = hdr <> (align $ intercalate "\n" $ map row [0..my])
 changeCost :: Int
 changeCost = 8
 
-dijkstraCosts :: Ord v => (v -> [(Int,v)]) -> v -> v -> Map v Int
-dijkstraCosts neighbrf start end = go (Q.singleton (0,start)) (Map.singleton start 0) mempty
+-- This gives the costs to points and the link maps
+dijkstra' :: Ord v => (v -> [(Int,v)]) -> v -> (v -> Bool) -> (Map v Int, Map v v)
+dijkstra' neighbrf start done = go (Q.singleton (0,start)) (Map.singleton start 0) mempty mempty
   where
-    go q m seen
-      | Q.null q = m
-      | pt == end = m'
-      | Set.member pt seen = go odo m seen
-      | otherwise = go (odo <> psd) m' (Set.insert pt seen)
+    go q m l seen
+      | Q.null q = (m,l)
+      | done pt = (m',l)
+      | Set.member pt seen = go odo m l seen
+      | otherwise = go (odo <> psd) m' l' (Set.insert pt seen)
 
       where
         ([(d,pt)], odo) = Q.splitAt 1 q
         moves = filter ((`Set.notMember` seen) . snd) $ neighbrf pt
-        m' = Map.unionWith min m $ Map.fromList $ map (\(c,p') -> (p',c+d)) moves
+        improvements = filter (\(c,p') -> c+d < Map.findWithDefault (c+d+1) p' m) moves
+        m' = Map.union (Map.fromList $ map (\(c,p') -> (p',c+d)) improvements) m
+        l' = Map.union (Map.fromList $ map (\(_,p') -> (p',pt)) improvements) l
         psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) moves
 
 dijkstra :: Ord v => (v -> [(Int,v)]) -> v -> v -> Maybe (Int,[v])
-dijkstra neighbrf start end = resolve (dijkstraCosts neighbrf start end)
+dijkstra neighbrf start end = resolve (dijkstra' neighbrf start (== end))
 
   where
-    resolve m = case Map.lookup end m of
-                  Nothing   -> Nothing
-                  Just cost -> Just (cost, reverse $ gor end)
+    resolve (m,l) = case Map.lookup end m of
+                      Nothing   -> Nothing
+                      Just cost -> Just (cost, reverse $ end : go end)
       where
-        gor pt
+        go pt
           | pt == start = []
-          | otherwise = best : gor best
-          where best = snd $ minimumBy (cmppt `on` ((`Map.lookup` m) . snd)) $ neighbrf pt
-                cmppt Nothing _ = GT
-                cmppt _ Nothing = LT
-                cmppt x y       = compare x y
+          | otherwise = next : go next
+          where next = l Map.! pt
 
 neighbors :: Survey -> XYT -> [(Int,XYT)]
 neighbors s@(Survey a) = moveswc
