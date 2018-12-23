@@ -1,12 +1,12 @@
 module Day23Tests where
 
-import Test.QuickCheck
-import Test.Tasty
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
+import           Test.QuickCheck
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck as QC
 
-import Day23
+import           Day23
 
 testBotDistance :: [TestTree]
 testBotDistance = map (\(t, want) -> testCase (show t) $ assertEqual "" want (botDistance (Nanobot (0,0,0) 4) t)) [
@@ -39,10 +39,16 @@ testPart1 = do
   (Right p) <- getInput
   assertEqual "in range" 950 $ part1' p
 
+testPart2 :: Assertion
+testPart2 = do
+  (Right p) <- getInput
+  assertEqual "best point" 86871407 $ part2' p
+
 tests :: [TestTree]
 tests = [
   testGroup "distance" testBotDistance,
   testGroup "range" testBotRange,
 
-  testCase "part 1" testPart1
+  testCase "part 1" testPart1,
+  testCase "part 2" testPart2
   ]
