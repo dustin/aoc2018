@@ -108,8 +108,23 @@ drawCostMap m = hdr <> (align $ intercalate "\n" $ map row [0..my])
 changeCost :: Int
 changeCost = 8
 
+dijkstraCosts :: Ord v => (v -> [(Int,v)]) -> v -> v -> Map v Int
+dijkstraCosts neighbrf start end = go (Q.singleton (0,start)) (Map.singleton start 0) mempty
+  where
+    go q m seen
+      | Q.null q = m
+      | pt == end = m'
+      | Set.member pt seen = go odo m seen
+      | otherwise = go (odo <> psd) m' (Set.insert pt seen)
+
+      where
+        ([(d,pt)], odo) = Q.splitAt 1 q
+        moves = filter ((`Set.notMember` seen) . snd) $ neighbrf pt
+        m' = Map.unionWith min m $ Map.fromList $ map (\(c,p') -> (p',c+d)) moves
+        psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) moves
+
 dijkstra :: Ord v => (v -> [(Int,v)]) -> v -> v -> Maybe (Int,[v])
-dijkstra neighbrf start end = resolve $ go (Q.singleton (0,start)) (Map.singleton start 0) mempty
+dijkstra neighbrf start end = resolve (dijkstraCosts neighbrf start end)
 
   where
     resolve m = case Map.lookup end m of
@@ -123,18 +138,6 @@ dijkstra neighbrf start end = resolve $ go (Q.singleton (0,start)) (Map.singleto
                 cmppt Nothing _ = GT
                 cmppt _ Nothing = LT
                 cmppt x y       = compare x y
-
-    go q m seen
-      | Q.null q = m
-      | pt == end = m'
-      | Set.member pt seen = go odo m seen
-      | otherwise = go (odo <> psd) m' (Set.insert pt seen)
-
-      where
-        ([(d,pt)], odo) = Q.splitAt 1 q
-        moves = filter ((`Set.notMember` seen) . snd) $ neighbrf pt
-        m' = Map.unionWith min m $ Map.fromList $ map (\(c,p') -> (p',c+d)) moves
-        psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) moves
 
 neighbors :: Survey -> XYT -> [(Int,XYT)]
 neighbors s@(Survey a) = moveswc
