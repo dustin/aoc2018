@@ -2,15 +2,13 @@
 
 module Day22 where
 
-import           Control.Applicative (liftA2)
 import qualified Data.Array          as A
 import           Data.Foldable       (minimumBy)
+import           Data.Function       (on)
 import           Data.List           (intercalate)
 import           Data.Map            (Map)
 import qualified Data.Map.Strict     as Map
-import           Data.Ord            (comparing)
 import qualified Data.PQueue.Min     as Q
-import           Data.Set            (Set)
 import qualified Data.Set            as Set
 
 import           Elfcode             (align)
@@ -51,12 +49,10 @@ altTool :: Tool -> Type -> Type -> Tool
 altTool t t1 t2 = head $ filter (\t' -> compatible t' t1 && compatible t' t2 && t /= t') alles
 
 adjacent :: XY -> [XY]
-adjacent (x,y) = x `seq` [ (x,y+1), (x-1, y), (x+1, y), (x,y-1) ]
+adjacent (x,y) = [ (x,y+1), (x-1, y), (x+1, y), (x,y-1) ]
 
 bounded :: XY -> [XY] -> [XY]
-bounded (xmax,ymax) = filter inbound
-  where
-    inbound (x,y) = x >= 0 && y >= 0 && x <= xmax && y <= ymax
+bounded (xmax,ymax) = filter (\(x,y) -> x >= 0 && y >= 0 && x <= xmax && y <= ymax)
 
 survey :: CaveSpec -> (Int,Int) -> Survey
 survey (tx,ty,depth) (w,h) = Survey $ mkArry
@@ -112,11 +108,38 @@ drawCostMap m = hdr <> (align $ intercalate "\n" $ map row [0..my])
 changeCost :: Int
 changeCost = 8
 
-mapCosts :: Survey -> XYT -> XYT -> Map XYT Int
-mapCosts s@(Survey a) origin destt = go (Q.singleton (0,origin)) (Map.singleton origin 0) mempty
+dijkstra :: Ord v => (v -> [(Int,v)]) -> v -> v -> Maybe (Int,[v])
+dijkstra neighbrf start end = resolve $ go (Q.singleton (0,start)) (Map.singleton start 0) mempty
+
+  where
+    resolve m = case Map.lookup end m of
+                  Nothing   -> Nothing
+                  Just cost -> Just (cost, reverse $ gor end)
+      where
+        gor pt
+          | pt == start = []
+          | otherwise = best : gor best
+          where best = snd $ minimumBy (cmppt `on` ((`Map.lookup` m) . snd)) $ neighbrf pt
+                cmppt Nothing _ = GT
+                cmppt _ Nothing = LT
+                cmppt x y       = compare x y
+
+    go q m seen
+      | Q.null q = m
+      | pt == end = m'
+      | Set.member pt seen = go odo m seen
+      | otherwise = go (odo <> psd) m' (Set.insert pt seen)
+
+      where
+        ([(d,pt)], odo) = Q.splitAt 1 q
+        moves = filter ((`Set.notMember` seen) . snd) $ neighbrf pt
+        m' = Map.unionWith min m $ Map.fromList $ map (\(c,p') -> (p',c+d)) moves
+        psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) moves
+
+neighbors :: Survey -> XYT -> [(Int,XYT)]
+neighbors s@(Survey a) = moveswc
   where
     (_,abounds) = A.bounds a
-    moveswc :: XYT -> [(Int,XYT)]
     moveswc (p,t) = concatMap aMove (moves p)
       where
         moves = bounded abounds . adjacent
@@ -125,30 +148,6 @@ mapCosts s@(Survey a) origin destt = go (Q.singleton (0,origin)) (Map.singleton 
           | compatible t ct = [(1,(xy,t)), (changeCost,(xy, altTool t ct (cellType s xy)))]
           | otherwise = let nt = compatMap Map.! (cellType s p, ct) in [(changeCost,(xy,nt))]
             where ct = cellType s xy
-
-    go :: Q.MinQueue (Int,XYT) -> Map XYT Int -> Set XYT -> Map XYT Int
-    go q m seen
-      | Q.null q = m
-      | pt == destt = m'
-      | Set.member pt seen = go odo m seen
-      | otherwise = go (odo `Q.union` psd) m' (Set.insert pt seen)
-
-      where
-        ([(d,pt)], odo) = Q.splitAt 1 q
-        moves = moveswc pt
-        m' = Map.unionWith min m $ Map.fromList $ map (\(c,xyt) -> (xyt,c+d)) moves
-        psd = Q.fromList $ fmap (\(c,x) -> (c + d, x)) moves
-
-path :: Map XYT Int -> XYT -> XYT -> [XYT]
-path m frm = go
-  where
-    go :: XYT -> [XYT]
-    go pt@(xy,_)
-      | pt == frm = []
-      | otherwise = best : go best
-      where
-        best :: XYT
-        best = minimumBy (comparing (\x' -> Map.findWithDefault 999999 x' m)) $ liftA2 (,) (adjacent xy) alles
 
 pathOverlay :: XY -> [XYT] -> Map XY Char
 pathOverlay dxy p = Map.fromList ((dxy,'@') : fmap (st <$>) p)
@@ -162,10 +161,7 @@ cellType :: Survey -> XY -> Type
 cellType (Survey a) p = let el = a A.! p in cellType' el
 
 cellType' :: Int -> Type
-cellType' el = case el `mod` 3 of
-                 0 -> Rocky
-                 1 -> Wet
-                 2 -> Narrow
+cellType' el = toEnum $ el `mod` 3
 
 riskLevel :: Survey -> Int
 riskLevel (Survey a) = sum $ fmap (fromEnum . cellType') a
@@ -180,8 +176,7 @@ part2' :: Int
 part2' = let frm = ((0,0),Torch)
              to = ((9,731),Torch)
              s = survey (9,731,11109) (9 + (7*4), 731 + (7*4))
-             m = mapCosts s frm to in
-  m Map.! to
+             Just (n,_) = dijkstra (neighbors s) frm to in n
 
 part2 :: IO ()
 part2 = print part2'

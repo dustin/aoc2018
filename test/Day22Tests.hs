@@ -39,9 +39,9 @@ testExample = do
 testExampleP2 :: Assertion
 testExampleP2 = do
   let s = survey (10,10,510) (20,20)
-      m = mapCosts s ((0,0),Torch) ((10,10),Torch)
+      Just (c,_) = dijkstra (neighbors s) ((0,0),Torch) ((10,10),Torch)
 
-  assertEqual "" 45 $ m Map.! ((10,10),Torch)
+  assertEqual "" 45 c
 
 testPart1 :: Assertion
 testPart1 = do
