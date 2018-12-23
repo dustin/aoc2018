@@ -23,7 +23,7 @@ dijkstra' neighbrf start done = go (Q.singleton (0,start)) (Map.singleton start 
         improvements = filter (\(c,p') -> c+d < Map.findWithDefault (c+d+1) p' m) moves
         m' = Map.union (Map.fromList $ map (\(c,p') -> (p',c+d)) improvements) m
         l' = Map.union (Map.fromList $ map (\(_,p') -> (p',pt)) improvements) l
-        psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) moves
+        psd = Q.fromList $ fmap (\(c,x) -> (d+c,x)) improvements
 
 dijkstra :: Ord v => (v -> [(Int,v)]) -> v -> v -> Maybe (Int,[v])
 dijkstra neighbrf start end = resolve (dijkstra' neighbrf start (== end))
