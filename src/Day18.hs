@@ -6,8 +6,6 @@ import qualified Data.Array.Unboxed as A
 import           Data.Ix            (Ix)
 import           Data.List          (intercalate)
 import qualified Data.Map.Strict    as Map
-import           Data.Maybe         (mapMaybe)
-import           Debug.Trace        (trace)
 
 type Thing = Char
 
@@ -58,15 +56,15 @@ tx1 w = mapa transform w
     transform p '.' | atLeast p 3 trees = trees
     transform p '|' | atLeast p 3 lumberyard = lumberyard
     transform p '#' | not (atLeast p 1 trees && atLeast p 1 lumberyard) = open
-    transform _ x = x
+    transform _ x   = x
 
     is p t = (A.inRange . A.bounds) w p && t == w A.! p
 
     atLeast :: (Int,Int) -> Int -> Thing -> Bool
     atLeast p = go (adjacent p)
       where
-        go _ 0 _ = True
-        go [] _ _ = False
+        go _ 0 _      = True
+        go [] _ _     = False
         go (x:xs) n t = go xs (if is x t then n - 1 else n) t
 
 ofType :: World -> Thing -> Int

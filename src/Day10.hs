@@ -4,13 +4,10 @@ module Day10 where
 
 import           Control.Monad        (mapM_)
 import qualified Data.Attoparsec.Text as A
-import           Data.Either          (either)
-import           Data.List            (sortBy, sortOn)
+import           Data.List            (sortOn)
 import           Data.List.Extra      (chunksOf)
 import qualified Data.Map.Strict      as Map
-import           Data.Ord             (comparing)
-import           Data.Text            (Text, pack)
-import           Debug.Trace          (trace)
+import           Data.Text            (pack)
 
 -- position=< 9,  1> velocity=< 0,  2>
 
@@ -53,7 +50,7 @@ bounds vs = ((minimum xs, minimum ys), (maximum xs, maximum ys))
 
 drawVecs :: [Vec] -> IO ()
 drawVecs vs = let vs' = originate vs
-                  bs@((minx,miny), (maxx,maxy)) = bounds vs'
+                  (_, (maxx,maxy)) = bounds vs'
                   m = Map.fromList [((x,y),' ') | x <- [0..maxx], y <- [0..maxy]]
                   mm = chunksOf (maxx+1) $ map snd $ sortOn (snd . fst) $ Map.toList $ Map.union (Map.fromList $ map (\(Vec p _) -> (p,'#')) vs') m in
                 mapM_ putStrLn mm
@@ -69,6 +66,6 @@ part1 :: IO ()
 part1 = do
   (Right vs) <- getInput
   let vss = map (\n -> let vs' = originate (vecMove n <$> vs) in (n, bounds vs', vs')) [1..100000]
-  let (n,_,vs') = findMin (\(_,b,_) -> b) vss
+  let (n,_,_) = findMin (\(_,b,_) -> b) vss
   print n
   drawVecs $ vecMove n <$> vs

@@ -40,7 +40,7 @@ parseScans = do
 parseClay :: A.Parser [Clay]
 parseClay = do
   (axis1, points1) <- parseAxis <* ", "
-  (axis2, points2) <- parseAxis
+  (_, points2) <- parseAxis
 
   let (xs, ys) = if axis1 == 'x' then (points1,points2) else (points2,points1)
 
@@ -73,7 +73,7 @@ pour :: Scan -> Scan
 pour s@(Scan m) = Scan $ down (500,mny) m
 
   where
-    ((mnx,mny),(mxx,mxy)) = bounds s
+    ((_,mny),(_,mxy)) = bounds s
 
     down (x,y) m'
       | y > mxy = m'
@@ -93,12 +93,12 @@ pour s@(Scan m) = Scan $ down (500,mny) m
             range = [(x',y) | x' <- [(fst . head) edges .. (fst . last) edges]]
             spills = any spillpoint edges
             spillsat = fmap (+1) <$> filter spillpoint edges
-            spillpoint (x,y) = ml (x,y+1) == Nothing
+            spillpoint (x',y') = ml (x',y'+1) == Nothing
             edges = [search pred x, search succ x]
-              where search f x
-                      | spillpoint (f x,y) = (f x,y)
-                      | ml (f x,y) == Just '#' = (x,y)
-                      | otherwise = search f (f x)
+              where search f x'
+                      | spillpoint (f x',y) = (f x',y)
+                      | ml (f x',y) == Just '#' = (x',y)
+                      | otherwise = search f (f x')
 
 countWater :: Scan -> Int
 countWater (Scan m) = length . Map.filter (`elem` ['~', '|']) $ m
@@ -124,21 +124,21 @@ part2 = do
 img :: String -> IO ()
 img s = do
   (Right scans) <- getInput' s
-  let s'@(Scan m) = pour scans
+  let s' = pour scans
 
   writePng "day17.png" (mkImg s')
 
   where
-    mkImg s@(Scan m) = generateImage (mkpixel m) w h
+    mkImg s'@(Scan m) = generateImage (mkpixel m) w h
 
       where
-        ((mnx,mny),(mxx,mxy)) = bounds s
+        ((mnx,mny),(mxx,mxy)) = bounds s'
         w = mxx - mnx
         h = mxy - mny
 
-        mkpixel m x y = c (Map.lookup (x+mnx, y+mny) m)
+        mkpixel m' x y = c (Map.lookup (x+mnx, y+mny) m')
 
-        c Nothing    = PixelRGB8 194 178 128
         c (Just '#') = PixelRGB8 152 105 96
         c (Just '~') = PixelRGB8 0 0 128
         c (Just '|') = PixelRGB8 0 0 255
+        c _          = PixelRGB8 194 178 128

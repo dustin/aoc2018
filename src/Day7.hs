@@ -5,12 +5,10 @@ module Day7 where
 import           Data.Semigroup       ((<>))
 
 import qualified Data.Attoparsec.Text as A
-import qualified Data.Graph           as G
 import           Data.List            (sort, (\\))
 import qualified Data.Map.Strict      as Map
 import qualified Data.Set             as Set
-import           Data.Text            (Text, pack, unpack)
-import qualified Data.Text.Encoding   as E
+import           Data.Text            (pack)
 
 -- B requires A
 data Requirement = Requirement Char Char deriving (Show)
@@ -54,7 +52,7 @@ state _             = Blocked
 -- tasks that have completed.
 uptasks :: [Task] -> [Task] -> [Task]
 uptasks a b = map (clean.snd) $ Map.toList $ Map.fromList ((map k b) <> (map k a))
-  where k t@(Task a _ _) = (a, t)
+  where k t@(Task a' _ _) = (a', t)
         clean (Task a n reqs) = Task a n (reqs \\ done)
         done :: [Char]
         done = concatMap (\t@(Task c _ _) -> if state t == Done then [c] else []) a

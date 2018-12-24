@@ -2,7 +2,6 @@
 
 module Day6 where
 
-import           Data.Foldable   (minimumBy)
 import qualified Data.Map.Strict as Map
 import           Data.Ord        (comparing)
 import           Data.Semigroup  ((<>))
@@ -44,7 +43,7 @@ part1 = do
   let mm = head <$> Map.filter ((== 1) . length) m
 
   -- Map of input points to the number of points to which they were the shortest.
-  let md = Map.fromListWith (+) $ map (\(_,(d,op)) -> (op,1)) $ Map.toList mm
+  let md = Map.fromListWith (+) $ map (\(_,(_,op)) -> (op,1)) $ Map.toList mm
 
   print $ maximum md
 

@@ -6,11 +6,9 @@ import           Control.Applicative  ((<|>))
 import qualified Data.Map.Strict      as Map
 
 import qualified Data.Attoparsec.Text as A
-import           Data.List            (foldl', sort)
-import           Data.Text            (Text, pack, unpack)
-import qualified Data.Text.Encoding   as E
-import           Data.Time
 import           Data.Functor         (($>))
+import           Data.List            (sort)
+import           Data.Text            (pack)
 
 {-
 -- not a leap year...
@@ -80,11 +78,11 @@ sleepMins :: GuardInfo -> [(TS,TS)] -- (Asleep, Awake)
 sleepMins (GuardInfo ts _ evs) = awake ts [] evs
 
   where
-    awake _ x []                  = x
-    awake ts as ((t,Asleep):rest) = asleep t as rest
+    awake _ x []                 = x
+    awake _ as ((t,Asleep):rest) = asleep t as rest
 
-    asleep _ x []                 = x
-    asleep ts rs ((t,Awake):rest) = awake t ((ts,t):rs) rest
+    asleep _ x []                  = x
+    asleep ts' rs ((t,Awake):rest) = awake t ((ts',t):rs) rest
 
 sleepTime :: GuardInfo -> Int
 sleepTime gi = foldr (\(l,h) o -> o + length [l..h] - 1) 0 $ sleepMins gi
@@ -110,11 +108,11 @@ part2 = do
   (Right ls) <- A.parseOnly (anEvent `A.sepBy` (A.char '\n')) <$> pack <$> readFile "input/day4"
   let grpd = grp (sort ls)
   let gsleeps = map (\g@(GuardInfo _ i _) -> (i, justMins g)) grpd
-  let m = Map.fromListWith (Map.unionWith (+)) $ concatMap (\(g, mins) -> map (\m -> (g,Map.singleton m 1)) mins) gsleeps
+  let m = Map.fromListWith (Map.unionWith (+)) $ concatMap (\(g, mins) -> map (\m' -> (g,Map.singleton m' 1)) mins) gsleeps
 
-  let (g,mn,_) = Map.foldrWithKey (\k mm o@(g,m,n) ->
+  let (g,mn,_) = Map.foldrWithKey (\k mm o@(_,_,n) ->
                                      case Map.toList $ Map.filter (\x -> x == maximum mm) mm of
-                                       [(m',n')] -> if n' > n then (k,m',n') else o
+                                       [(m'',n')] -> if n' > n then (k,m'',n') else o
                                        _ -> o
                                   ) (0,0,0) m
   print $ show g <> " * " <> show mn <> " = " <> show (mn*g)

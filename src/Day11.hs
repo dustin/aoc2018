@@ -3,12 +3,9 @@
 module Day11 where
 
 import qualified Data.Array.Unboxed          as A
-import           Data.Ix                     (Ix)
 import           Debug.Trace                 (trace)
 
-import           Control.Monad               (mapM_)
-import           Control.Parallel.Strategies (NFData, parList, parMap, rdeepseq,
-                                              using)
+import           Control.Parallel.Strategies (parList, parMap, rdeepseq, using)
 
 powerLevel :: Int -> (Int, Int) -> Int
 powerLevel sn (r,c) = let rid = r + 10
@@ -38,7 +35,7 @@ largestAtSize sn sz =
 newtype Grid = Grid (A.Array (Int,Int) Int) deriving (Show)
 
 gl :: Grid -> (Int,Int) -> Int
-gl g@(Grid g') = let bs = A.bounds g' in checked bs
+gl (Grid g') = let bs = A.bounds g' in checked bs
 
   where checked ((xmn,ymn),(xmx,ymx)) (x,y) =
           if y < ymn || y > ymx || x < xmn || x > xmx then 0 else g' A.! (x,y)

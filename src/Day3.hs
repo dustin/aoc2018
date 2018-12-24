@@ -2,12 +2,10 @@
 
 module Day3 where
 
-import           Control.Monad        (guard)
 import qualified Data.Map.Strict      as Map
 
 import qualified Data.Attoparsec.Text as A
-import           Data.Text            (Text, pack, unpack)
-import qualified Data.Text.Encoding   as E
+import           Data.Text            (pack)
 
 data Claim = Claim Int (Int,Int) (Int,Int) deriving (Show)
 
@@ -39,7 +37,7 @@ part2 :: IO ()
 part2 = do
   (Right ls) <- parseClaims <$> lines <$> readFile "input/day3"
   let cs = counts ls
-  let a = filter (\c@(Claim i _ _) -> let segs = expand [c] in total cs segs == length segs) ls
+  let a = filter (\c@(Claim _ _ _) -> let segs = expand [c] in total cs segs == length segs) ls
   print $ head a
 
     where

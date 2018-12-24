@@ -2,11 +2,10 @@
 
 module Day13 where
 
-import           Control.Applicative ((<|>))
-import           Control.Concurrent  (threadDelay)
-import           Data.List           (intercalate, sort)
-import qualified Data.Map.Strict     as Map
-import           System.IO           (hFlush, stdout)
+import           Control.Concurrent (threadDelay)
+import           Data.List          (intercalate, sort)
+import qualified Data.Map.Strict    as Map
+import           System.IO          (hFlush, stdout)
 
 data Dir = N | E | S | W deriving (Bounded, Enum, Show, Eq)
 
@@ -91,13 +90,13 @@ getInput = parseInput . lines <$> readFile "input/day13"
 
 
 moveCart :: World -> Cart -> Cart
-moveCart (World m _)  c@(Cart pos dir nextTurn) =
+moveCart (World m _)  (Cart pos dir nextTurn) =
   let nextPos = move dir pos in
     case m Map.! nextPos of
       Intersection -> Cart nextPos (turn nextTurn dir) (succ' nextTurn)
       UpDown       -> Cart nextPos dir nextTurn
       LeftRight    -> Cart nextPos dir nextTurn
-      Curve c      -> Cart nextPos (curve c dir) nextTurn
+      Curve crv    -> Cart nextPos (curve crv dir) nextTurn
 
   where
     move :: Dir -> (Int,Int) -> (Int,Int)
@@ -172,7 +171,7 @@ part2a = do
 
   where
     go :: World -> IO ()
-    go w@(World m carts) = do
+    go w = do
       removeCarts w
       let w'@(World _ carts') = moveCarts w
       addCarts w'
@@ -181,7 +180,7 @@ part2a = do
       go w'
 
     removeCarts :: World -> IO ()
-    removeCarts w@(World m carts) =
+    removeCarts (World m carts) =
       mapM_ (\(Cart (x,y) _ _) -> do
                 putStr $ "\ESC[" <> show (y + 2) <> ";" <> show (x + 1) <> "H"
                 putStr $ show (m Map.! (x,y))) carts
@@ -193,12 +192,12 @@ part2a = do
                                    "\ESC[41;1m", show c, "\ESC[0m"]) carts
 
     moveCarts :: World -> World
-    moveCarts w@(World m carts) = World m $ go (sort carts) []
+    moveCarts w@(World m carts) = World m $ go' (sort carts) []
 
       where
-        go :: [Cart] -> [Cart] -> [Cart]
-        go [] r = r
-        go (c:xs) r = let c' = moveCart w c in
-                        if c' `elem` (r <> xs) then
-                          go (filter (/= c') xs) (filter (/= c') r)
-                        else go xs (c':r)
+        go' :: [Cart] -> [Cart] -> [Cart]
+        go' [] r = r
+        go' (c:xs) r = let c' = moveCart w c in
+                         if c' `elem` (r <> xs) then
+                           go' (filter (/= c') xs) (filter (/= c') r)
+                         else go' xs (c':r)

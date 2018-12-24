@@ -1,5 +1,6 @@
 module Day1 where
 
+import           Data.Set (Set)
 import qualified Data.Set as Set
 
 pn :: String -> Int
@@ -13,7 +14,7 @@ part1 = print =<< sum . map pn . lines <$> readFile "input/day1"
 part2h :: [Int] -> Int
 part2h = folder mempty 0 . cycle
   where
-    folder :: Set.Set Int -> Int -> [Int] -> Int
+    folder :: Set Int -> Int -> [Int] -> Int
     folder s i (x:xs)
       | ix `Set.member` s = ix
       | otherwise = folder (Set.insert ix s) ix xs

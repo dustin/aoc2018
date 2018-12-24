@@ -5,7 +5,6 @@ module Day9 where
 import qualified Data.IntMap   as IntMap
 import           Data.List     (foldl')
 import qualified Data.Sequence as Seq
-import           Debug.Trace   (trace)
 
 insertClockwise :: [Int] -> Int -> [Int]
 insertClockwise xs m = m : rot2 xs
@@ -18,7 +17,7 @@ play :: Int -> Int -> Int
 play p m = let players = [1..p]
                marbles = [1..m]
                plays = zip (cycle players) marbles
-               (scores, c) = foldl' addOne (mempty, [0]) plays
+               (scores, _) = foldl' addOne (mempty, [0]) plays
                total = sum <$> scores in
              maximum total
 
@@ -48,7 +47,7 @@ play' :: Int -> Int -> Int
 play' p m = let players = [1..p]
                 marbles = [1..m]
                 plays = zip (cycle players) marbles
-                (scores, c) = foldl' addOne (mempty, Seq.singleton 0) plays
+                (scores, _) = foldl' addOne (mempty, Seq.singleton 0) plays
                 total = sum <$> scores in
               maximum total
 

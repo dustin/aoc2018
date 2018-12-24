@@ -2,10 +2,9 @@
 
 module Day5 where
 
-import           Control.Parallel.Strategies (parList, rseq, using)
-import           Data.Char                   (toLower, toUpper)
-import           Data.Foldable               (minimumBy)
-import qualified Data.Set                    as Set
+import           Data.Char     (toLower, toUpper)
+import           Data.Foldable (minimumBy)
+import qualified Data.Set      as Set
 
 chain :: String -> String
 chain [] = []
@@ -14,7 +13,7 @@ chain (x:y:xs)
   | match x y = chain xs
   | otherwise = x : chain (y:xs)
 
-  where match x y = (x /= y) && toLower x == toLower y
+  where match x' y' = (x' /= y') && toLower x' == toLower y'
 
 react :: String -> String
 react s = let c = chain s in if s == c then c else react c
@@ -43,6 +42,6 @@ part2 = do
 
   let mm = map (\(c, i) -> (c, length $ react i)) m
 
-  let ans  = minimumBy (\a@(_,al) b@(_,bl) -> compare al bl) mm
+  let ans  = minimumBy (\(_,al) (_,bl) -> compare al bl) mm
 
   print ans

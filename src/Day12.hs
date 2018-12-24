@@ -3,14 +3,12 @@
 module Day12 where
 
 import           Control.Applicative  ((<|>))
-import           Control.Monad        (mapM_, replicateM)
+import           Control.Monad        (replicateM)
 import           Data.Array.Unboxed   as Ar
 import qualified Data.Attoparsec.Text as A
 import           Data.List            (foldl')
-import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromMaybe)
-import           Data.Text            (Text, pack)
-import           Debug.Trace          (trace)
+import           Data.Text            (pack)
 
 type Pot = Bool
 
@@ -84,6 +82,6 @@ part2 = do
 
   -- Stabilizes after 100 and then the whole thing just shifts one to
   -- the right.  Can compute the answer pretty easily.
-  let st@(Pots ps) = foldl' (\o _ -> applyAll o ts) istate [1..100]
+  let (Pots ps) = foldl' (\o _ -> applyAll o ts) istate [1..100]
   let ns = (map (toEnum.fst) $ filter snd (Ar.assocs ps)) :: [Integer]
   print $ sum (map (+ (50000000000-100)) ns)

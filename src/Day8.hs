@@ -7,9 +7,8 @@ import           Control.Monad.Trans.State (State, evalState, get, put)
 import qualified Data.Attoparsec.Text      as A
 import           Data.Foldable             (fold)
 import           Data.List                 (mapAccumL)
-import           Data.Text                 (Text, pack)
+import           Data.Text                 (pack)
 import qualified Data.Tree                 as Tree
-import           Debug.Trace               (trace)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -27,10 +26,10 @@ readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
 -- D, which has 0 child nodes and 1 metadata entry (99).
 
 readTree :: [Int] -> Tree.Tree [Int]
-readTree l@(c:m:xs) =
-  let (xs', subs) = mapAccumL (\xs' ts ->
-                                  let t = readTree xs' in
-                                    (drop (sz t) xs', t)) xs [1..c] in
+readTree (c:m:xs) =
+  let (xs', subs) = mapAccumL (\xs'' _ ->
+                                  let t = readTree xs'' in
+                                    (drop (sz t) xs'', t)) xs [1..c] in
     Tree.Node (take m xs') subs
 
   where

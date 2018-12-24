@@ -3,17 +3,15 @@
 module Day2 where
 
 import           Control.Monad     (guard)
-import           Data.List         (sortOn)
 import qualified Data.Map.Strict   as Map
-import qualified Data.Set          as Set
 import           Text.EditDistance (defaultEditCosts, levenshteinDistance)
 
 checksum :: [String] -> Int
 checksum lns =
   -- this was kind of gross, but it was the first thing I could think of.
   let w = (Map.fromListWith (+) . map (,1) <$> lns) :: [Map.Map Char Int]
-      (t,f) = foldr (\m (t,f) -> (t + if null $ Map.filter (==2) m then 0 else 1,
-                                  f + if null $ Map.filter (==3) m then 0 else 1)) (0,0) w in
+      (t,f) = foldr (\m (t',f') -> (t' + if null $ Map.filter (==2) m then 0 else 1,
+                                    f' + if null $ Map.filter (==3) m then 0 else 1)) (0,0) w in
     t*f
 
 part1 :: IO ()

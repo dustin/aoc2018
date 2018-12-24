@@ -6,7 +6,7 @@ import qualified Data.Attoparsec.Text as A
 import qualified Data.Set             as Set
 import           Data.Text            (pack)
 
-import Elfcode
+import           Elfcode
 
 getInput :: IO (Either String Program)
 getInput = A.parseOnly parseProg . pack <$> readFile "input/day21"
