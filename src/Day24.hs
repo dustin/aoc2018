@@ -3,21 +3,22 @@
 
 module Day24 where
 
-import           Control.Applicative  (liftA2, (<|>))
-import           Data.Foldable        (maximumBy)
-import           Data.List            (intercalate, partition, sortBy, sortOn)
-import           Data.Map.Strict      (Map)
-import qualified Data.Map.Strict      as Map
-import           Data.Maybe           (fromJust)
-import           Data.Ord             (Down (..), comparing)
-import           Data.Text            (Text, pack)
-import           Text.Megaparsec      (ParseError, Parsec, between, parse,
-                                       some, sepBy, endBy)
-import           Text.Megaparsec.Char (space, alphaNumChar)
-import           Data.Void            (Void)
+import           Control.Applicative        (liftA2, (<|>))
+import           Data.Foldable              (maximumBy)
+import           Data.List                  (intercalate, partition, sortBy,
+                                             sortOn)
+import           Data.Map.Strict            (Map)
+import qualified Data.Map.Strict            as Map
+import           Data.Maybe                 (fromJust)
+import           Data.Ord                   (Down (..), comparing)
+import           Data.Text                  (Text, pack)
+import           Data.Void                  (Void)
+import           Text.Megaparsec            (ParseError, Parsec, between, endBy,
+                                             parse, sepBy, some)
+import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           Search               (binSearch)
+import           Search                     (binSearch)
 
 data Props = Props Text [Text]
 
@@ -69,10 +70,8 @@ parseArmy _side = do
 
 parseArmies :: Parser [Army]
 parseArmies = do
-  _ <- spacey "Immune System:"
-  is <- parseArmy Immune `endBy` space
-  _ <- spacey "Infection:"
-  inf <- parseArmy Infection `endBy` space
+  is  <- (spacey "Immune System:") *> parseArmy Immune `endBy` space
+  inf <- (spacey "Infection:")     *> parseArmy Infection `endBy` space
 
   pure (zipWith idify is [1..] <> zipWith idify inf [1..])
 
