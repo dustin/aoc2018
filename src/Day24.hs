@@ -16,9 +16,7 @@ import           Data.Text            (Text, pack)
 
 import           Search               (binSearch)
 
-data PropType = Weakness | Immunity deriving (Show, Eq)
-
-data Props = Props PropType [Text]
+data Props = Props Text [Text]
 
 data Side = Immune | Infection deriving (Eq, Show)
 
@@ -34,13 +32,17 @@ data Army = Army {
   , _initiative :: Int
   } deriving (Eq, Show)
 
+-- Eat whitspace around a parser.
+spacey :: A.Parser a -> A.Parser a
+spacey f = A.skipSpace *> f <* A.skipSpace
+
 parseArmy :: Side -> A.Parser Army
 parseArmy side = do
   units <- A.decimal <* " units each with "
   hp <- A.decimal <* " hit points "
-  (im,wk) <- ("(" *> weakAndImmune <* ")") <|> pure ([],[])
-  pwr <- A.skipSpace *> "with an attack that does " *> A.decimal
-  atyp <- A.skipSpace *> A.takeWhile (/= ' ') <* " damage at initiative "
+  (im,wk) <- ("(" *> parseProps <* ")") <|> pure ([],[])
+  pwr <- spacey "with an attack that does " *> A.decimal
+  atyp <- spacey (word <* " damage at initiative")
   int <- A.decimal
 
   pure Army{_id= -1, _side=side, _units=units, _hp=hp,
@@ -48,26 +50,24 @@ parseArmy side = do
             _power=pwr, _atType=atyp, _initiative=int}
 
   where
-    weakAndImmune :: A.Parser ([Text],[Text])
-    weakAndImmune = liftA2 (,) (propVals Immunity) (propVals Weakness) <$> (parseProps `A.sepBy` "; ")
+    parseProps :: A.Parser ([Text],[Text])
+    parseProps = liftA2 (,) (propVals "immune") (propVals "weak") <$> (aProp `A.sepBy` spacey ";")
 
       where
-        propVals :: PropType -> [Props] -> [Text]
+        propVals :: Text -> [Props] -> [Text]
         propVals pt = concatMap (\(Props t v) -> if t == pt then v else [])
 
-    parseProps :: A.Parser Props
-    parseProps = parseWeaknesses <|> parseStrengths
+        aProp :: A.Parser Props
+        aProp = Props <$> word <* " to " <*> (word `A.sepBy` spacey ",")
 
-    parseWeaknesses = Props Weakness <$>  ("weak to " *> A.takeWhile isAlpha `A.sepBy` ", ")
-    parseStrengths = Props Immunity <$> ("immune to " *> A.takeWhile isAlpha `A.sepBy` ", ")
+    word = A.takeWhile isAlpha
 
 parseArmies :: A.Parser [Army]
 parseArmies = do
-  _ <- "Immune System:\n"
-  is <- parseArmy Immune `A.sepBy` "\n"
-  _ <- A.skipSpace
-  _ <- "Infection:\n"
-  inf <- parseArmy Infection `A.sepBy` "\n"
+  _ <- spacey "Immune System:"
+  is <- parseArmy Immune `A.sepBy` A.many1 A.space
+  _ <- spacey "Infection:"
+  inf <- parseArmy Infection `A.sepBy` A.many1 A.space
 
   pure (zipWith idify is [1..] <> zipWith idify inf [1..])
 
