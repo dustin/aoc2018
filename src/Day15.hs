@@ -142,35 +142,28 @@ bestMove w p
         sub2 (a,b) (c,d) = (a-c, b-d)
 
         next Nothing = Nothing
-        next (Just x) = searchNext x
-
-        searchNext x = case pathTo w p x of
-                         Nothing -> Nothing
-                         Just (l) -> Just (head l)
+        next (Just x) = stepTo w p x
 
         ospac = openSpace w
         neighbors p' = map (1,) $ filter (`Set.member` ospac) (around p')
 
-pathTo :: World -> (Int,Int) -> (Int,Int) -> Maybe [(Int,Int)]
-pathTo w f t
-  | f `adjacentTo` t = Just [t]
+stepTo :: World -> (Int,Int) -> (Int,Int) -> Maybe (Int,Int)
+stepTo w f t
+  | f `adjacentTo` t = Just t
   | otherwise = -- trace (" finding path to " <> show t) $
                 let m = go (Q.singleton (0,t)) mempty mempty in
                   if null m then Nothing
-                  else sequenceA $ resolve f m
+                  else resolve f m
 
   where
     p1 `adjacentTo` p2 = p1 `elem` around p2
     ospac = openSpace w
     possible p = filter (`Set.member` ospac) (around p)
 
-    resolve :: (Int,Int) -> Map.Map (Int,Int) Int -> [Maybe (Int,Int)]
+    resolve :: (Int,Int) -> Map.Map (Int,Int) Int -> Maybe (Int,Int)
     resolve p m
-      | p == t = []
-      | null next = [Nothing]
-      | otherwise = let np = best next in
-                      Just np : resolve np m
-
+      | null next = Nothing
+      | otherwise = Just (best next)
         where
           next :: [(Int,Int)]
           next = filter (`Map.member` m) (around p)
