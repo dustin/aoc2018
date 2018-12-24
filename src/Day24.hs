@@ -51,11 +51,11 @@ parseArmy side = do
 
   where
     parseProps :: A.Parser ([Text],[Text])
-    parseProps = liftA2 (,) (propVals "immune") (propVals "weak") <$> (aProp `A.sepBy` spacey ";")
+    parseProps = liftA2 (,) (vals "immune") (vals "weak") <$> (aProp `A.sepBy` spacey ";")
 
       where
-        propVals :: Text -> [Props] -> [Text]
-        propVals pt = concatMap (\(Props t v) -> if t == pt then v else [])
+        vals :: Text -> [Props] -> [Text]
+        vals pt = concatMap (\(Props t v) -> if t == pt then v else [])
 
         aProp :: A.Parser Props
         aProp = Props <$> word <* " to " <*> (word `A.sepBy` spacey ",")
