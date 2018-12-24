@@ -9,8 +9,8 @@ import           Test.Tasty.Ingredients.Basic (HideSuccesses(..))
 
 import           Day23
 
-testBotDistance :: [TestTree]
-testBotDistance = map (\(t, want) -> testCase (show t) $ assertEqual "" want (botDistance (Nanobot (0,0,0) 4) t)) [
+testBotDistance :: Assertion
+testBotDistance = mapM_ (\(t, want) -> assertEqual (show t) want (botDistance (Nanobot (0,0,0) 4) t)) [
   (Nanobot (0,0,0) 4, 0),
   (Nanobot (1,0,0) 1, 1),
   (Nanobot (4,0,0) 3, 4),
@@ -22,8 +22,8 @@ testBotDistance = map (\(t, want) -> testCase (show t) $ assertEqual "" want (bo
   (Nanobot (1,3,1) 1, 5)
   ]
 
-testBotRange :: [TestTree]
-testBotRange = map (\(t, want) -> testCase (show t) $ assertEqual "" want (inRange (Nanobot (0,0,0) 4) t)) [
+testBotRange :: Assertion
+testBotRange = mapM_ (\(t, want) -> assertEqual (show t) want (inRange (Nanobot (0,0,0) 4) t)) [
   (Nanobot (0,0,0) 4, True),
   (Nanobot (1,0,0) 1, True),
   (Nanobot (4,0,0) 3, True),
@@ -47,8 +47,8 @@ testPart2 = do
 
 tests :: [TestTree]
 tests = [
-  localOption (HideSuccesses True) $ testGroup "distance" testBotDistance,
-  localOption (HideSuccesses True) $ testGroup "range" testBotRange,
+  testCase "distance" testBotDistance,
+  testCase "range" testBotRange,
 
   testCase "part 1" testPart1,
   testCase "part 2" testPart2
