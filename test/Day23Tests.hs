@@ -5,6 +5,7 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
+import           Test.Tasty.Ingredients.Basic (HideSuccesses(..))
 
 import           Day23
 
@@ -46,8 +47,8 @@ testPart2 = do
 
 tests :: [TestTree]
 tests = [
-  testGroup "distance" testBotDistance,
-  testGroup "range" testBotRange,
+  localOption (HideSuccesses True) $ testGroup "distance" testBotDistance,
+  localOption (HideSuccesses True) $ testGroup "range" testBotRange,
 
   testCase "part 1" testPart1,
   testCase "part 2" testPart2
