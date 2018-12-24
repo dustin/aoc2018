@@ -4,8 +4,6 @@
 module Day24 where
 
 import           Control.Applicative  (liftA2, (<|>))
-import qualified Data.Attoparsec.Text as A
-import           Data.Char            (isAlpha)
 import           Data.Foldable        (maximumBy)
 import           Data.List            (intercalate, partition, sortBy, sortOn)
 import           Data.Map.Strict      (Map)
@@ -13,6 +11,11 @@ import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromJust)
 import           Data.Ord             (Down (..), comparing)
 import           Data.Text            (Text, pack)
+import           Text.Megaparsec      (ParseError, Parsec, between, parse,
+                                       some, sepBy, endBy)
+import           Text.Megaparsec.Char (space, alphaNumChar)
+import           Data.Void            (Void)
+import           Text.Megaparsec.Char.Lexer (decimal)
 
 import           Search               (binSearch)
 
@@ -32,53 +35,55 @@ data Army = Army {
   , _initiative :: Int
   } deriving (Eq, Show)
 
+type Parser = Parsec Void Text
+
 -- Eat whitspace around a parser.
-spacey :: A.Parser a -> A.Parser a
-spacey f = A.skipSpace *> f <* A.skipSpace
+spacey :: Parser a -> Parser a
+spacey f = space *> f <* space
 
-parseArmy :: Side -> A.Parser Army
-parseArmy side = do
-  units <- A.decimal <* " units each with "
-  hp <- A.decimal <* " hit points "
-  (im,wk) <- ("(" *> parseProps <* ")") <|> pure ([],[])
-  pwr <- spacey "with an attack that does " *> A.decimal
-  atyp <- spacey (word <* " damage at initiative")
-  int <- A.decimal
+parseArmy :: Side -> Parser Army
+parseArmy _side = do
+  let _id = -1
+  _units <- decimal <* " units each with "
+  _hp <- decimal <* " hit points "
+  (_immunities, _weaknesses) <- between "(" ")" parseProps <|> pure ([],[])
+  _power <- spacey "with an attack that does " *> decimal
+  _atType <- spacey (word <* " damage at initiative")
+  _initiative <- decimal
 
-  pure Army{_id= -1, _side=side, _units=units, _hp=hp,
-            _immunities=im, _weaknesses=wk,
-            _power=pwr, _atType=atyp, _initiative=int}
+  pure Army{..}
 
   where
-    parseProps :: A.Parser ([Text],[Text])
-    parseProps = liftA2 (,) (vals "immune") (vals "weak") <$> (aProp `A.sepBy` spacey ";")
+    parseProps :: Parser ([Text],[Text])
+    parseProps = liftA2 (,) (vals "immune") (vals "weak") <$> (aProp `sepBy` spacey ";")
 
       where
         vals :: Text -> [Props] -> [Text]
         vals pt = concatMap (\(Props t v) -> if t == pt then v else [])
 
-        aProp :: A.Parser Props
-        aProp = Props <$> word <* " to " <*> (word `A.sepBy` spacey ",")
+        aProp :: Parser Props
+        aProp = Props <$> word <* " to " <*> (word `sepBy` spacey ",")
 
-    word = A.takeWhile isAlpha
+    word :: Parser Text
+    word = pack <$> some alphaNumChar
 
-parseArmies :: A.Parser [Army]
+parseArmies :: Parser [Army]
 parseArmies = do
   _ <- spacey "Immune System:"
-  is <- parseArmy Immune `A.sepBy` A.many1 A.space
+  is <- parseArmy Immune `endBy` space
   _ <- spacey "Infection:"
-  inf <- parseArmy Infection `A.sepBy` A.many1 A.space
+  inf <- parseArmy Infection `endBy` space
 
   pure (zipWith idify is [1..] <> zipWith idify inf [1..])
 
     where
       idify a i = a{_id=i}
 
-getInput :: IO (Either String [Army])
+getInput :: IO (Either (ParseError Char Void) [Army])
 getInput = getInput' "input/day24"
 
-getInput' :: String -> IO (Either String [Army])
-getInput' s = A.parseOnly parseArmies . pack <$> readFile s
+getInput' :: String -> IO (Either (ParseError Char Void) [Army])
+getInput' s = parse parseArmies s . pack <$> readFile s
 
 targetOrder :: [Army] -> [Army]
 targetOrder = sortBy (comparing (Down . effpwr) <> comparing (Down . _initiative))
