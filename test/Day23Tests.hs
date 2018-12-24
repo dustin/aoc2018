@@ -5,7 +5,6 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
-import           Test.Tasty.Ingredients.Basic (HideSuccesses(..))
 
 import           Day23
 
