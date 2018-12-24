@@ -44,7 +44,7 @@ dijkstra neighbrf start end = resolve (dijkstra' neighbrf start (== end))
   where resolve (m,l) = resolvePath m l start end
 
 -- Search across a number space to find a boundary.
-binSearch :: (Int -> Ordering) ->  Int -> Int -> Int
+binSearch :: Integral a => (a -> Ordering) ->  a -> a -> a
 binSearch f l h
   | h < l     = l
   | v == GT   = binSearch f l (mid-1)
