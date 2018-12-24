@@ -3,11 +3,11 @@
 
 module Day24 where
 
-import           Control.Applicative  ((<|>))
+import           Control.Applicative  (liftA2, (<|>))
 import qualified Data.Attoparsec.Text as A
 import           Data.Char            (isAlpha)
 import           Data.Foldable        (maximumBy)
-import           Data.List            (intercalate, partition, sortBy)
+import           Data.List            (intercalate, partition, sortBy, sortOn)
 import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (listToMaybe)
@@ -16,7 +16,9 @@ import           Data.Text            (Text, pack)
 
 import           Search               (binSearch)
 
-data Props = Weaknesses [Text] | Immunities [Text]
+data PropType = Weakness | Immunity deriving (Show, Eq)
+
+data Props = Props PropType [Text]
 
 data Side = Immune | Infection deriving (Eq, Show)
 
@@ -44,27 +46,23 @@ parseArmy side = do
   atyp <- A.skipSpace *> A.takeWhile (/= ' ') <* " damage at initiative "
   int <- A.decimal
 
-  pure Army{_id=(-1), _side=side, _units=units, _hp=hp,
-            _immunities=im, _weaknesses=wk, _power=pwr,
-            _atType=atyp, _initiative=int}
+  pure Army{_id= -1, _side=side, _units=units, _hp=hp,
+            _immunities=im, _weaknesses=wk,
+            _power=pwr, _atType=atyp, _initiative=int}
 
   where
-    weakAndImmune = do
-      props <- parseProps `A.sepBy` "; "
-      let wk = concatMap weakness props
-      let str = concatMap strengths props
-      pure (str,wk)
+    weakAndImmune :: A.Parser ([Text],[Text])
+    weakAndImmune = liftA2 (,) (propVals Immunity) (propVals Weakness) <$> (parseProps `A.sepBy` "; ")
 
-      where weakness (Weaknesses x) = x
-            weakness _              = []
-            strengths (Immunities x) = x
-            strengths _              = []
+      where
+        propVals :: PropType -> [Props] -> [Text]
+        propVals pt = concatMap (\(Props t v) -> if t == pt then v else [])
 
     parseProps :: A.Parser Props
     parseProps = parseWeaknesses <|> parseStrengths
 
-    parseWeaknesses = Weaknesses <$> ("weak to " *> A.takeWhile isAlpha `A.sepBy` ", ")
-    parseStrengths = Immunities <$> ("immune to " *> A.takeWhile isAlpha `A.sepBy` ", ")
+    parseWeaknesses = Props Weakness <$>  ("weak to " *> A.takeWhile isAlpha `A.sepBy` ", ")
+    parseStrengths = Props Immunity <$> ("immune to " *> A.takeWhile isAlpha `A.sepBy` ", ")
 
 parseArmies :: A.Parser [Army]
 parseArmies = do
@@ -123,7 +121,7 @@ performAttack :: [(Army, Maybe Army)] -> [Army]
 performAttack ins = go ordered (Map.fromList $ map (\(a,_) -> (_initiative a, a)) ins)
   where
     ordered :: [(Army, Maybe Army)]
-    ordered = sortBy (comparing (Down . _initiative . fst)) ins
+    ordered = sortOn (Down . _initiative . fst) ins
 
     go :: [(Army, Maybe Army)] -> Map Int Army -> [Army]
     go [] st = Map.elems st
@@ -175,7 +173,7 @@ part2' army = let ans = binSearch tryAt 1 100000 in
         play = dropWhile (not.gameOver) . take 100000 . iterate aRound
         score = foldr (\Army{..} o -> o + _units) 0
         tryAt n =
-          case winner . listToMaybe . play $ (increaseImmunity n army) of
+          case winner . listToMaybe . play $ increaseImmunity n army of
             Just Immune -> GT
             _           -> LT
         winner :: Maybe [Army] -> Maybe Side
