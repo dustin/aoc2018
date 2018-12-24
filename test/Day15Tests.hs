@@ -19,6 +19,9 @@ propReadingOrder a b = readingOrder a b == ro a b
       | y1 == y2 = compare x1 x2
       | y1 > y2 = GT
 
+propAroundReadingOrder :: (Int,Int) -> Bool
+propAroundReadingOrder p = around p == readingSort (around p)
+
 day15Test :: String -> Int -> Int -> Assertion
 day15Test fn rounds sc = do
   w <- parseInput . lines <$> readFile fn
@@ -29,6 +32,7 @@ day15Test fn rounds sc = do
 tests :: [TestTree]
 tests = [
   testProperty "reading order" propReadingOrder,
+  testProperty "around reading order" propAroundReadingOrder,
   testCase "day 15 s2" $ day15Test "input/day15.sample" 47 590,
   testCase "day 15 s2" $ day15Test "input/day15.sample2" 20 937,
   testCase "day 15 s3" $ day15Test "input/day15.sample3" 54 536,

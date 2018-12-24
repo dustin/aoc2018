@@ -141,11 +141,13 @@ bestMove w p
 
         sub2 (a,b) (c,d) = (a-c, b-d)
 
-        next :: Maybe (Int,Int) -> Maybe (Int,Int)
         next Nothing = Nothing
-        next (Just dest) = case pathTo w p dest of
-                             Nothing -> Nothing
-                             Just (l) -> Just (head l)
+        next (Just x) = searchNext x
+
+        searchNext x = case pathTo w p x of
+                         Nothing -> Nothing
+                         Just (l) -> Just (head l)
+
         ospac = openSpace w
         neighbors p' = map (1,) $ filter (`Set.member` ospac) (around p')
 
