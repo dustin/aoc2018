@@ -1,14 +1,14 @@
 module Day15Tests where
 
-import Test.QuickCheck
-import Test.Tasty
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
+import           Test.QuickCheck
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck as QC
 
-import Data.List (sort)
+import           Data.List             (sort)
 
-import Day15
+import           Day15
 
 propReadingOrder :: (Int,Int) -> (Int,Int) -> Bool
 propReadingOrder a b = readingOrder a b == ro a b

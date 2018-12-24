@@ -1,12 +1,12 @@
 module Day17Tests where
 
-import Test.QuickCheck
-import Test.Tasty
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
+import           Test.QuickCheck
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck as QC
 
-import Day17
+import           Day17
 
 run17 :: FilePath -> String -> IO ()
 run17 inf outf = do

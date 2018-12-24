@@ -1,12 +1,12 @@
 module Day10Tests where
 
-import Test.QuickCheck
-import Test.Tasty
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
+import           Test.QuickCheck
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck as QC
 
-import Day10
+import           Day10
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [

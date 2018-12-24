@@ -1,14 +1,14 @@
 module Day11Tests where
 
-import Test.QuickCheck
-import Test.Tasty
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
+import           Test.QuickCheck
+import           Test.Tasty
+import           Test.Tasty.Golden
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck as QC
 
-import qualified Data.Array.Unboxed as A
+import qualified Data.Array.Unboxed    as A
 
-import Day11
+import           Day11
 
 msquare :: [[Int]]
 msquare  = [[31,  2,  4, 33,  5, 36],
