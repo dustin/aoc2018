@@ -70,8 +70,8 @@ parseArmy _side = do
 
 parseArmies :: Parser [Army]
 parseArmies = do
-  is  <- (spacey "Immune System:") *> parseArmy Immune `endBy` space
-  inf <- (spacey "Infection:")     *> parseArmy Infection `endBy` space
+  is  <- spacey "Immune System:" *> parseArmy Immune `endBy` space
+  inf <- spacey "Infection:"     *> parseArmy Infection `endBy` space
 
   pure (zipWith idify is [1..] <> zipWith idify inf [1..])
 
