@@ -33,7 +33,7 @@ data Army = Army {
   } deriving (Show)
 
 instance Eq Army where
-  Army{_id = a} == Army{_id = b} = a == b
+  Army{_id = ia, _side = sa} == Army{_id = ib, _side = sb} = ia == ib && sa == sb
 
 parseArmy :: Side -> A.Parser Army
 parseArmy side = do
