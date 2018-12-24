@@ -3,7 +3,7 @@
 
 module Day24 where
 
-import           Control.Applicative        (liftA2, (<|>))
+import           Control.Applicative        (liftA2)
 import           Data.Foldable              (maximumBy)
 import           Data.List                  (intercalate, partition, sortBy,
                                              sortOn)
@@ -14,7 +14,7 @@ import           Data.Ord                   (Down (..), comparing)
 import           Data.Text                  (Text, pack)
 import           Data.Void                  (Void)
 import           Text.Megaparsec            (ParseError, Parsec, between, endBy,
-                                             parse, sepBy, some)
+                                             option, parse, sepBy, some)
 import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
@@ -47,7 +47,7 @@ parseArmy _side = do
   let _id = -1
   _units <- decimal <* " units each with "
   _hp <- decimal <* " hit points "
-  (_immunities, _weaknesses) <- between "(" ")" parseProps <|> pure ([],[])
+  (_immunities, _weaknesses) <- option ([],[]) $ between "(" ")" parseProps
   _power <- spacey "with an attack that does " *> decimal
   _atType <- spacey (word <* " damage at initiative")
   _initiative <- decimal
