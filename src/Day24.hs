@@ -13,7 +13,6 @@ import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (listToMaybe)
 import           Data.Ord             (Down (..), comparing)
 import           Data.Text            (Text, pack)
-import           Debug.Trace          (trace)
 
 import Search (binSearch)
 
@@ -176,7 +175,6 @@ part2' army = let ans = binSearch tryAt 1 100000 in
         play = dropWhile (not.gameOver) . take 100000 . iterate aRound
         score = foldr (\Army{..} o -> o + _units) 0
         tryAt n =
-          trace ("Trying " <> show n) $
           case winner . listToMaybe . play $ (increaseImmunity n army) of
             Just Immune -> GT
             _           -> LT
