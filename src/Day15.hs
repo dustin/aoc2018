@@ -15,6 +15,8 @@ import qualified Data.Set                    as Set
 import           Data.Tuple                  (swap)
 import           Debug.Trace                 (trace)
 
+import Search    (binSearch)
+
 data Thing = Wall | Open | Elf Int | Goblin Int
 
 instance Show Thing where
@@ -252,17 +254,6 @@ part1 = do
   putStrLn $ "final score after " <> show r <> " rounds: " <> show s
   print w'
   print $ s * r
-
-binSearch :: (Int -> Ordering) ->  Int -> Int -> Int
-binSearch f l h
-  | h < l     = l
-  | v == GT   = binSearch f l (mid-1)
-  | v == LT   = binSearch f (mid+1) h
-  | otherwise = mid
-  where
-    mid = l + (h-l) `div` 2
-    v = f mid
-
 
 -- final score after 63 rounds: 1109
 -- 69867

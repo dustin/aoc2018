@@ -15,6 +15,8 @@ import           Data.Ord             (Down (..), comparing)
 import           Data.Text            (Text, pack)
 import           Debug.Trace          (trace)
 
+import Search (binSearch)
+
 data Props = Weaknesses [Text] | Immunities [Text]
 
 data Side = Immune | Infection deriving (Eq, Show)
@@ -161,16 +163,6 @@ part1 :: IO ()
 part1 = do
   (Right armies) <- getInput
   print $ part1' armies
-
-binSearch :: (Int -> Ordering) ->  Int -> Int -> Int
-binSearch f l h
-  | h < l     = l
-  | v == GT   = binSearch f l (mid-1)
-  | v == LT   = binSearch f (mid+1) h
-  | otherwise = mid
-  where
-    mid = l + (h-l) `div` 2
-    v = f mid
 
 increaseImmunity :: Int -> [Army] -> [Army]
 increaseImmunity x = map incrim

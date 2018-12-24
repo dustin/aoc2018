@@ -19,10 +19,6 @@ propReadingOrder a b = readingOrder a b == ro a b
       | y1 == y2 = compare x1 x2
       | y1 > y2 = GT
 
-propBinSearch :: Int -> Int -> Int -> Bool
-propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
-                        binSearch (flip compare b') a' c' == b'
-
 day15Test :: String -> Int -> Int -> Assertion
 day15Test fn rounds sc = do
   w <- parseInput . lines <$> readFile fn
@@ -37,8 +33,6 @@ tests = [
   testCase "day 15 s2" $ day15Test "input/day15.sample2" 20 937,
   testCase "day 15 s3" $ day15Test "input/day15.sample3" 54 536,
   testCase "day 15 s4" $ day15Test "input/day15.sample4" 35 793,
-  testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859,
+  testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859
   -- testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812, -- ~4s
-
-  testProperty "bin search" propBinSearch
   ]

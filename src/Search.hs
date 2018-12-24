@@ -42,3 +42,14 @@ resolvePath m l start end = case Map.lookup end m of
 dijkstra :: Ord v => (v -> [(Int,v)]) -> v -> v -> Maybe (Int,[v])
 dijkstra neighbrf start end = resolve (dijkstra' neighbrf start (== end))
   where resolve (m,l) = resolvePath m l start end
+
+-- Search across a number space to find a boundary.
+binSearch :: (Int -> Ordering) ->  Int -> Int -> Int
+binSearch f l h
+  | h < l     = l
+  | v == GT   = binSearch f l (mid-1)
+  | v == LT   = binSearch f (mid+1) h
+  | otherwise = mid
+  where
+    mid = l + (h-l) `div` 2
+    v = f mid
