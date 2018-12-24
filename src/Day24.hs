@@ -73,10 +73,9 @@ parseArmies = do
   is  <- spacey "Immune System:" *> parseArmy Immune `endBy` space
   inf <- spacey "Infection:"     *> parseArmy Infection `endBy` space
 
-  pure (zipWith idify is [1..] <> zipWith idify inf [1..])
+  pure (idify is <> idify inf)
 
-    where
-      idify a i = a{_id=i}
+    where idify = zipWith (\i a -> a{_id=i}) [1..]
 
 getInput :: IO (Either (ParseError Char Void) [Army])
 getInput = getInput' "input/day24"
