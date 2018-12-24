@@ -3,19 +3,19 @@
 
 module Day15 where
 
-import           Control.Parallel.Strategies (parMap, rdeepseq)
 import           Data.Foldable               (minimumBy)
 import           Data.List                   (foldl', intercalate, sortBy,
-                                              sortOn)
+                                              sortOn, sort)
 import qualified Data.Map.Strict             as Map
-import           Data.Maybe                  (listToMaybe)
+import Data.Map.Strict (Map)
+import           Data.Maybe                  (isJust)
 import           Data.Ord                    (comparing)
-import qualified Data.PQueue.Min             as Q
+import qualified Data.PQueue.Min as Q
 import qualified Data.Set                    as Set
 import           Data.Tuple                  (swap)
 import           Debug.Trace                 (trace)
 
-import Search    (binSearch)
+import Search    (binSearch, dijkstra')
 
 data Thing = Wall | Open | Elf Int | Goblin Int
 
@@ -60,7 +60,7 @@ mkHit e = dohit
       | otherwise = Open
     dohit x = error ("can't hit " <> show x)
 
-newtype World = World (Map.Map (Int,Int) Thing)
+newtype World = World (Map (Int,Int) Thing)
 
 instance Show World where
   show (World m) =intercalate "\n" $ map row [0..my]
@@ -121,26 +121,34 @@ players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
 bestMove :: World -> (Int,Int) -> Maybe (Int,Int)
 bestMove w p
   | not $ null $ adjacentEnemies w p = Nothing
-  | otherwise = listToMaybe $ best Nothing $ targetPaths w p
+  | otherwise = let (m,_) = dijkstra' neighbors p (`elem` cands)
+                    cands = targets w p
+                    targs = sort $ map (\(Just j,x) -> (j,x)) $ filter (\(j,_) -> isJust j) $
+                            map (\t -> (Map.lookup t m,t)) cands in
+                  next $ best Nothing (candidate targs)
 
-  where best :: Maybe ((Int,Int), [(Int,Int)]) -> [((Int,Int),Maybe [(Int,Int)])] -> [(Int,Int)]
-        best Nothing [] = []        -- no moves
-        best (Just (_, os)) [] = os -- no new moves
-        best x ((_, Nothing):xs) = best x xs  -- not a valid path
-        best Nothing ((d,Just ps):xs) = best (Just (d,ps)) xs  -- Any valid path is a good start
-        best o@(Just (op, os)) ((d, Just ps):xs)
-          | length os > length ps = best (Just (d,ps)) xs -- current is longer, take the new
-          | length os < length ps = best o xs -- current is shorter, keep it
-          | readingOrder (sub2 d p) (sub2 op p) == LT = best (Just (d,ps)) xs -- better destination
+  where candidate :: [(Int,(Int,Int))] -> [(Int,Int)]
+        candidate [] = []
+        candidate [(_,x)] = [x]
+        candidate ((s1,p1):xs) = p1 : map snd (takeWhile (\(x,_) -> x == s1) xs)
+
+        best :: Maybe (Int,Int) -> [(Int,Int)] -> Maybe (Int,Int)
+        best x [] = x
+        best Nothing (p':xs) = best (Just p') xs
+        best o@(Just a) (b:xs)
+          | readingOrder (sub2 b p) (sub2 a p) == LT = best (Just b) xs -- better destination
           | otherwise = best o xs
 
         sub2 (a,b) (c,d) = (a-c, b-d)
 
-targetPaths :: World -> (Int,Int) -> [((Int,Int), Maybe [(Int,Int)])]
-targetPaths w p = parMap rdeepseq (\d -> (d,pathTo w p d)) $ targets w p
+        next :: Maybe (Int,Int) -> Maybe (Int,Int)
+        next Nothing = Nothing
+        next (Just dest) = case pathTo w p dest of
+                             Nothing -> Nothing
+                             Just (l) -> Just (head l)
+        ospac = openSpace w
+        neighbors p' = map (1,) $ filter (`Set.member` ospac) (around p')
 
--- Path from the point where a thing is, to where it wants to go (without obstruction)
--- focusing on (23,8)
 pathTo :: World -> (Int,Int) -> (Int,Int) -> Maybe [(Int,Int)]
 pathTo w f t
   | f `adjacentTo` t = Just [t]
@@ -181,6 +189,7 @@ pathTo w f t
         moves = filter (\p' -> 1+d < Map.findWithDefault (1+d+1) p' m) ps
         ps = filter (`Set.notMember` seen) $ possible p
         psd = Q.fromList $ map (d+1,) moves
+
 
 adjacentEnemies :: World -> (Int,Int) -> [(Int,Int)]
 adjacentEnemies w p = filter (\x -> isEnemy (at w p) (at w x)) $ around p

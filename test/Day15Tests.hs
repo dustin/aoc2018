@@ -33,6 +33,6 @@ tests = [
   testCase "day 15 s2" $ day15Test "input/day15.sample2" 20 937,
   testCase "day 15 s3" $ day15Test "input/day15.sample3" 54 536,
   testCase "day 15 s4" $ day15Test "input/day15.sample4" 35 793,
-  testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859
-  -- testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812, -- ~4s
+  testCase "day 15 s4" $ day15Test "input/day15.sample5" 46 859,
+  testCase "day 15 big" $ day15Test "input/day15.bigsample" 68 2812 -- ~4s -> ~1.45s
   ]
