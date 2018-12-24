@@ -1,4 +1,4 @@
-module Graph where
+module Search where
 
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map

@@ -8,7 +8,7 @@ import System.IO (IOMode(..), Handle, withFile)
 import Control.DeepSeq (NFData(..))
 
 import Day22
-import Graph (dijkstra)
+import Search (dijkstra)
 
 instance NFData Survey where
   rnf (Survey a) = a `seq` a `seq` ()

@@ -8,7 +8,7 @@ import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
 
 import           Elfcode         (align)
-import           Graph           (dijkstra)
+import           Search          (dijkstra)
 
 data Type = Rocky | Wet | Narrow deriving (Eq, Ord, Enum, Bounded, Show)
 

@@ -9,7 +9,7 @@ import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
 import           Day22
-import           Graph                 (dijkstra)
+import           Search                (dijkstra)
 
 import qualified Data.Array            as A
 import qualified Data.Map.Strict       as Map
