@@ -10,7 +10,7 @@ import           Data.Foldable        (maximumBy)
 import           Data.List            (intercalate, partition, sortBy, sortOn)
 import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as Map
-import           Data.Maybe           (listToMaybe)
+import           Data.Maybe           (fromJust)
 import           Data.Ord             (Down (..), comparing)
 import           Data.Text            (Text, pack)
 
@@ -32,10 +32,7 @@ data Army = Army {
   , _power      :: Int
   , _atType     :: Text
   , _initiative :: Int
-  } deriving (Show)
-
-instance Eq Army where
-  Army{_id = ia, _side = sa} == Army{_id = ib, _side = sb} = ia == ib && sa == sb
+  } deriving (Eq, Show)
 
 parseArmy :: Side -> A.Parser Army
 parseArmy side = do
@@ -108,7 +105,7 @@ performTargeting armies = assign (targetOrder side1) side2 <> assign (targetOrde
     assign [] _ = []
     assign (a:xs) en
       | null candidates = (a,Nothing) : assign xs en
-      | otherwise = (a,Just t) : assign xs (filter (/= t) en)
+      | otherwise = (a,Just t) : assign xs (filter (\Army{_id=i} -> i /= _id t) en)
       where
         candidates = filter (\(x,_) -> x > 0) $ map (\x -> (damageEstimate a x,x)) en
         t = snd $ maximumBy (comparing fst <> comparing (effpwr . snd) <> comparing (_initiative . snd)) candidates
@@ -148,13 +145,22 @@ showArmies armies = "Immune System:\n" <> intercalate "\n" (map showArmy ims) <>
 
   where (ims, infs) = partitionArmies armies
 
-gameOver :: [Army] -> Bool
-gameOver armies = null p1 || null p2
+
+fight :: [Army] -> [Army]
+fight = go . iterate aRound
+  where
+    go (a:b:xs)
+      | a == b = a
+      | otherwise = go xs
+
+finalScore :: [Army] -> Maybe (Side, Int)
+finalScore armies
+  | null p1 || null p2 = Just (_side . head $ armies, sum . map _units $ armies)
+  | otherwise = Nothing
   where (p1,p2) = partitionArmies armies
 
-part1' :: [Army] -> Int
-part1' = score . head . dropWhile (not . gameOver) . iterate aRound
-  where score = foldr (\Army{..} o -> o + _units) 0
+part1' :: [Army] -> Maybe Int
+part1' as = snd <$> (finalScore . fight) as
 
 part1 :: IO ()
 part1 = do
@@ -169,15 +175,10 @@ increaseImmunity x = map incrim
 part2' :: [Army] -> Int
 part2' army = let ans = binSearch tryAt 1 100000 in
                 scoreAt ans
-  where scoreAt n = score . head . play $ increaseImmunity n army
-        play = dropWhile (not.gameOver) . take 100000 . iterate aRound
-        score = foldr (\Army{..} o -> o + _units) 0
-        tryAt n =
-          case winner . listToMaybe . play $ increaseImmunity n army of
-            Just Immune -> GT
-            _           -> LT
-        winner :: Maybe [Army] -> Maybe Side
-        winner l = _side . head <$> l
+  where scoreAt n = snd . fromJust . finalScore . fight $ increaseImmunity n army
+        tryAt n = case finalScore . fight $ increaseImmunity n army of
+                    Just (Immune,_) -> GT
+                    _               -> LT
 
 part2 :: IO ()
 part2 = do

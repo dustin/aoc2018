@@ -23,7 +23,7 @@ testDamage = do
 testPart1 :: Assertion
 testPart1 = do
   (Right a) <-  getInput
-  assertEqual "" 14854 (part1' a)
+  assertEqual "" (Just 14854) (part1' a)
 
 testPart2 :: Assertion
 testPart2 = do
