@@ -3,19 +3,18 @@
 
 module Day15 where
 
-import           Data.Foldable               (minimumBy)
-import           Data.List                   (foldl', intercalate, sortBy,
-                                              sortOn, sort)
-import qualified Data.Map.Strict             as Map
-import Data.Map.Strict (Map)
-import           Data.Maybe                  (isJust)
-import           Data.Ord                    (comparing)
+import           Data.Foldable   (minimumBy)
+import           Data.List       (foldl', intercalate, sort, sortBy, sortOn)
+import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import           Data.Maybe      (isJust)
+import           Data.Ord        (comparing)
 import qualified Data.PQueue.Min as Q
-import qualified Data.Set                    as Set
-import           Data.Tuple                  (swap)
-import           Debug.Trace                 (trace)
+import qualified Data.Set        as Set
+import           Data.Tuple      (swap)
+import           Debug.Trace     (trace)
 
-import Search    (binSearch, dijkstra')
+import           Search          (binSearch, dijkstra')
 
 data Thing = Wall | Open | Elf Int | Goblin Int
 
@@ -141,7 +140,7 @@ bestMove w p
 
         sub2 (a,b) (c,d) = (a-c, b-d)
 
-        next Nothing = Nothing
+        next Nothing  = Nothing
         next (Just x) = stepTo w p x
 
         ospac = openSpace w

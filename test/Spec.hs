@@ -6,7 +6,6 @@ import qualified ElfcodeTests
 
 import qualified Day10Tests
 import qualified Day11Tests
-import qualified SearchTests
 import qualified Day15Tests
 import qualified Day16Tests
 import qualified Day17Tests
@@ -17,6 +16,7 @@ import qualified Day21Tests
 import qualified Day22Tests
 import qualified Day23Tests
 import qualified Day24Tests
+import qualified SearchTests
 
 tests :: [TestTree]
 tests = [

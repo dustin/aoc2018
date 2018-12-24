@@ -14,7 +14,7 @@ import           Data.Maybe           (listToMaybe)
 import           Data.Ord             (Down (..), comparing)
 import           Data.Text            (Text, pack)
 
-import Search (binSearch)
+import           Search               (binSearch)
 
 data Props = Weaknesses [Text] | Immunities [Text]
 
