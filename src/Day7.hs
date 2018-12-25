@@ -4,11 +4,14 @@ module Day7 where
 
 import           Data.Semigroup       ((<>))
 
-import qualified Data.Attoparsec.Text as A
 import           Data.List            (sort, (\\))
 import qualified Data.Map.Strict      as Map
 import qualified Data.Set             as Set
-import           Data.Text            (pack)
+
+import           Text.Megaparsec      (endBy)
+import           Text.Megaparsec.Char (letterChar)
+
+import           AoC                  (Parser, parseFile)
 
 -- B requires A
 data Requirement = Requirement Char Char deriving (Show)
@@ -18,14 +21,12 @@ data Task = Task Char Int [Char] deriving (Eq, Ord, Show)
 
 data State = Ready | Blocked | Done deriving (Eq, Ord, Show)
 
-parseReq :: A.Parser Requirement
-parseReq = Requirement <$ "Step " <*> A.anyChar
-           <* " must be finished before step " <*> A.anyChar <* " can begin."
+parseReq :: Parser Requirement
+parseReq = Requirement <$ "Step " <*> letterChar
+           <* " must be finished before step " <*> letterChar <* " can begin."
 
 readInput :: IO [Requirement]
-readInput = do
-  (Right ls) <- A.parseOnly (parseReq `A.sepBy` (A.char '\n')) <$> pack <$> readFile "input/day7"
-  pure ls
+readInput = parseFile "input/day7" (parseReq `endBy` "\n")
 
 -- Figure out an order in which tasks can be performed.
 trav :: Set.Set Char -> Map.Map Char [Char] -> [Char]
@@ -53,7 +54,7 @@ state _             = Blocked
 uptasks :: [Task] -> [Task] -> [Task]
 uptasks a b = map (clean.snd) $ Map.toList $ Map.fromList ((map k b) <> (map k a))
   where k t@(Task a' _ _) = (a', t)
-        clean (Task a n reqs) = Task a n (reqs \\ done)
+        clean (Task a' n reqs) = Task a' n (reqs \\ done)
         done :: [Char]
         done = concatMap (\t@(Task c _ _) -> if state t == Done then [c] else []) a
 
@@ -73,6 +74,7 @@ complete tasks workers = go tasks 0
     go t n = let (w, t') = schedule t workers in
                go (filter ((/= Done) . state) t') (n+w)
 
+-- OVXCKZBDEHINPFSTJLUYRWGAMQ
 part1 :: IO ()
 part1 = do
   inp <- readInput
@@ -85,6 +87,7 @@ part1 = do
 
   print l
 
+-- 955
 part2 :: IO ()
 part2 = do
   inp <- readInput
