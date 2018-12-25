@@ -5,10 +5,12 @@ module Day12 where
 import           Control.Applicative  ((<|>))
 import           Control.Monad        (replicateM)
 import           Data.Array.Unboxed   as Ar
-import qualified Data.Attoparsec.Text as A
 import           Data.List            (foldl')
 import           Data.Maybe           (fromMaybe)
-import           Data.Text            (pack)
+import           Text.Megaparsec      (some)
+import           Text.Megaparsec.Char (char, space)
+
+import           AoC                  (Parser, parseFile)
 
 type Pot = Bool
 
@@ -24,30 +26,27 @@ instance Show Input where
 
 type Transformer = ([Pot], Pot)
 
-parsePot :: A.Parser Pot
-parsePot = False <$ A.char '.' <|> True <$ A.char '#'
+parsePot :: Parser Pot
+parsePot = False <$ char '.' <|> True <$ char '#'
 
-parseInput :: A.Parser Input
+parseInput :: Parser Input
 parseInput = do
-  istate <- "initial state: " *> A.many1 parsePot
-  _ <- A.many' A.space
+  istate <- "initial state: " *> some parsePot <* space
 
-  transes <- A.many1 trans
+  transes <- some trans
 
   pure $ Input (Pots $ Ar.array (0, length istate) $ zip [0..] istate) transes
 
   where
-    trans :: A.Parser Transformer
+    trans :: Parser Transformer
     trans = do
       pots <- replicateM 5 parsePot
-      tn <- " => " *> parsePot <* A.many' A.space
+      tn <- " => " *> parsePot <* space
 
       pure (pots, tn)
 
 getInput :: IO Input
-getInput = do
-  (Right (Input i ts)) <- A.parseOnly parseInput . pack <$> readFile "input/day12"
-  pure $ Input i (filter snd ts)
+getInput = parseFile "input/day12" parseInput
 
 stateSum :: Pots -> Int
 stateSum (Pots a) = sum $ fst <$> filter snd (Ar.assocs a)
