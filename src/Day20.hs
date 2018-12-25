@@ -16,7 +16,7 @@ import           Data.Void            (Void)
 import           GHC.Generics         (Generic)
 
 
-import           Text.Megaparsec      (ParseError, Parsec, between, parse,
+import           Text.Megaparsec      (ParseErrorBundle, Parsec, between, parse,
                                        sepBy)
 import           Text.Megaparsec.Char (char)
 
@@ -88,7 +88,7 @@ reachable tm = go mempty mempty 0 [(0,0)]
 mostDoors :: TheMap -> Int
 mostDoors = maximum . reachable
 
-getInput :: IO (Either (ParseError Char Void) TheMap)
+getInput :: IO (Either (ParseErrorBundle Text Void) TheMap)
 getInput = parse parseInput "" . pack <$> readFile "input/day20"
 
 -- 3872

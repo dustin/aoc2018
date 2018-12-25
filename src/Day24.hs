@@ -13,8 +13,8 @@ import           Data.Maybe                 (fromJust)
 import           Data.Ord                   (Down (..), comparing)
 import           Data.Text                  (Text, pack)
 import           Data.Void                  (Void)
-import           Text.Megaparsec            (ParseError, Parsec, between, endBy,
-                                             option, parse, sepBy, some)
+import           Text.Megaparsec            (ParseErrorBundle, Parsec, between,
+                                             endBy, option, parse, sepBy, some)
 import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
@@ -77,10 +77,10 @@ parseArmies = do
 
     where idify = zipWith (\i a -> a{_id=i}) [1..]
 
-getInput :: IO (Either (ParseError Char Void) [Army])
+getInput :: IO (Either (ParseErrorBundle Text Void) [Army])
 getInput = getInput' "input/day24"
 
-getInput' :: String -> IO (Either (ParseError Char Void) [Army])
+getInput' :: String -> IO (Either (ParseErrorBundle Text Void) [Army])
 getInput' s = parse parseArmies s . pack <$> readFile s
 
 targetOrder :: [Army] -> [Army]
