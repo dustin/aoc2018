@@ -9,7 +9,7 @@ import           Text.Megaparsec            (endBy)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
-import           AoC                        (Parser, parseFile)
+import           AoC                        (Parser, mdist3, parseFile)
 
 type Pos = (Int,Int,Int)
 
@@ -30,12 +30,8 @@ getInput = getInput' "input/day23"
 getInput' :: String -> IO [Nanobot]
 getInput' = parseFile (parseBot `endBy` "\n")
 
--- should be the square root of the squares of the differences on each axis.
-distance :: (Int,Int,Int) -> (Int,Int,Int) -> Int
-distance (x1,y1,z1) (x2,y2,z2) = abs (x1 - x2) + abs (y1 - y2) + abs (z1 - z2)
-
 botDistance :: Nanobot -> Nanobot -> Int
-botDistance (Nanobot p1 _) (Nanobot p2 _) = distance p1 p2
+botDistance (Nanobot p1 _) (Nanobot p2 _) = mdist3 p1 p2
 
 inRange :: Nanobot -> Nanobot -> Bool
 inRange a@(Nanobot _ r) b = botDistance a b <= r
@@ -91,7 +87,7 @@ towardsZero bots point by = imize notWorse point (-by,-by,-by)
     notWorse prev next = countInRangeOf next bots >= countInRangeOf prev bots
 
 part2' :: [Nanobot] -> Int
-part2' bots = distance (0,0,0) $ towardsZero bots (mostReachablePoint bots) 100000
+part2' bots = mdist3 (0,0,0) $ towardsZero bots (mostReachablePoint bots) 100000
 
 part2 :: IO ()
 part2 = print =<< part2' <$> getInput

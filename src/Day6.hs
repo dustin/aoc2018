@@ -2,13 +2,10 @@
 
 module Day6 where
 
+import           AoC             (mdist2)
 import qualified Data.Map.Strict as Map
 import           Data.Ord        (comparing)
 import           Data.Semigroup  ((<>))
-
--- Manhattan distance
-mdist :: (Int,Int) -> (Int,Int) -> Int
-mdist (x1,y1) (x2,y2) = abs (x1-x2) + abs (y1-y2)
 
 -- Create a grid of every point within the given min (x,y) and max (x,y)
 grid :: (Int,Int) -> (Int,Int) -> [(Int,Int)]
@@ -29,6 +26,7 @@ readInput = do
   datas <- lines <$> readFile "input/day6"
   pure $ map (\[a,b] -> (a,b)) $ map (map read . words . filter (/= ',')) datas
 
+-- 4143
 part1 :: IO ()
 part1 = do
   pairs <- readInput
@@ -37,7 +35,7 @@ part1 = do
   let m = Map.fromListWith (\a b -> case comparing minimum a b of
                                       EQ -> a <> b
                                       LT -> a
-                                      GT -> b) [(pos, [(mdist pos op, op)]) | pos <- grid' pairs, op <- pairs]
+                                      GT -> b) [(pos, [(mdist2 pos op, op)]) | pos <- grid' pairs, op <- pairs]
 
   -- Transform the above to only single point values with duplicates omitted.
   let mm = head <$> Map.filter ((== 1) . length) m
@@ -47,13 +45,14 @@ part1 = do
 
   print $ maximum md
 
+-- 35039
 part2 :: IO ()
 part2 = do
   pairs <- readInput
 
   -- This one is super easy, just count the sum of distances for every
   -- point in the grid.
-  let distances = map (\c -> foldr (\x o -> o + mdist x c) 0 pairs) $ grid' pairs
+  let distances = map (\c -> foldr (\x o -> o + mdist2 x c) 0 pairs) $ grid' pairs
 
   -- And then throw away any that are too far.
   print $ length $ filter (< 10000) distances

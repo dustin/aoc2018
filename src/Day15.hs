@@ -14,6 +14,7 @@ import qualified Data.Set        as Set
 import           Data.Tuple      (swap)
 import           Debug.Trace     (trace)
 
+import           AoC             (mdist2)
 import           Search          (binSearch, dijkstra')
 
 data Thing = Wall | Open | Elf Int | Goblin Int
@@ -105,14 +106,11 @@ around (x,y) = [(x,y-1), (x-1,y), (x+1,y), (x,y+1)]
 at :: World -> (Int,Int) -> Thing
 at (World m) p = m Map.! p
 
-mdist :: (Int,Int) -> (Int,Int) -> Int
-mdist (x1,y1) (x2,y2) = abs (x1-x2) + abs (y1-y2)
-
 targets :: World -> (Int,Int) -> [(Int,Int)]
 -- targets _ (23,8) = [(24,10)]
 targets w@(World m) pos = let enemies = ofType w (isEnemy (m Map.! pos))
                               tset = openSpace w `Set.intersection` Set.fromList (concatMap around enemies) in
-                            sortOn (mdist pos) (Set.toList tset)
+                            sortOn (mdist2 pos) (Set.toList tset)
 
 players :: World -> [(Int,Int)]
 players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
