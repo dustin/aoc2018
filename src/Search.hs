@@ -7,7 +7,7 @@ Maintainer  : dustin@spy.net
 Stability   : experimental
 Portability : POSIX
 
-Things i use for searching space in AoC.
+Things I use for searching space in AoC.
 -}
 module Search (dijkstra', dijkstra, resolveDijkstra, binSearch) where
 

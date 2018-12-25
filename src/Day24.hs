@@ -12,12 +12,12 @@ import qualified Data.Map.Strict            as Map
 import           Data.Maybe                 (fromJust)
 import           Data.Ord                   (Down (..), comparing)
 import           Data.Text                  (Text, pack)
-import           Data.Void                  (Void)
-import           Text.Megaparsec            (ParseErrorBundle, Parsec, between,
-                                             endBy, option, parse, sepBy, some)
+import           Text.Megaparsec            (between, endBy, option, sepBy,
+                                             some)
 import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
+import           AoC                        (Parser, parseFile)
 import           Search                     (binSearch)
 
 data Props = Props Text [Text]
@@ -35,8 +35,6 @@ data Army = Army {
   , _atType     :: Text
   , _initiative :: Int
   } deriving (Eq, Show)
-
-type Parser = Parsec Void Text
 
 -- Eat whitspace around a parser.
 spacey :: Parser a -> Parser a
@@ -77,11 +75,11 @@ parseArmies = do
 
     where idify = zipWith (\i a -> a{_id=i}) [1..]
 
-getInput :: IO (Either (ParseErrorBundle Text Void) [Army])
+getInput :: IO [Army]
 getInput = getInput' "input/day24"
 
-getInput' :: String -> IO (Either (ParseErrorBundle Text Void) [Army])
-getInput' s = parse parseArmies s . pack <$> readFile s
+getInput' :: String -> IO [Army]
+getInput' s = parseFile s parseArmies
 
 targetOrder :: [Army] -> [Army]
 targetOrder = sortBy (comparing (Down . effpwr) <> comparing (Down . _initiative))
@@ -166,9 +164,7 @@ part1' :: [Army] -> Maybe Int
 part1' as = snd <$> (finalScore . fight) as
 
 part1 :: IO ()
-part1 = do
-  (Right armies) <- getInput
-  print $ part1' armies
+part1 = print =<< part1' <$> getInput
 
 increaseImmunity :: Int -> [Army] -> [Army]
 increaseImmunity x = map incrim
@@ -184,6 +180,4 @@ part2' army = let ans = binSearch tryAt 1 100000 in
                     _               -> LT
 
 part2 :: IO ()
-part2 = do
-  (Right armies) <- getInput
-  print $ part2' armies
+part2 = print =<< part2' <$> getInput

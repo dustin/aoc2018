@@ -11,14 +11,13 @@ import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as Map
 import           Data.Set             (Set)
 import qualified Data.Set             as Set
-import           Data.Text            (Text, pack)
-import           Data.Void            (Void)
 import           GHC.Generics         (Generic)
 
 
-import           Text.Megaparsec      (ParseErrorBundle, Parsec, between, parse,
-                                       sepBy)
+import           Text.Megaparsec      (between, sepBy)
 import           Text.Megaparsec.Char (char)
+
+import           AoC                  (Parser, parseFile)
 
 data Directions = Dirs [Dir] | Sub [[Directions]] deriving (Generic, Eq, Show)
 
@@ -29,8 +28,6 @@ data Dir = N | E | S | W deriving (Generic, Show, Eq, Enum, Bounded)
 instance NFData Dir
 instance NFData Directions
 instance NFData TheMap
-
-type Parser = Parsec Void Text
 
 parseInput :: Parser TheMap
 parseInput = TheMap <$> between "^" "$" subExpr
@@ -88,15 +85,15 @@ reachable tm = go mempty mempty 0 [(0,0)]
 mostDoors :: TheMap -> Int
 mostDoors = maximum . reachable
 
-getInput :: IO (Either (ParseErrorBundle Text Void) TheMap)
-getInput = parse parseInput "" . pack <$> readFile "input/day20"
+getInput :: IO TheMap
+getInput = parseFile "input/day20" parseInput
 
 -- 3872
 part1 :: IO ()
-part1 = getInput >>= \(Right x) -> print $ mostDoors x
+part1 = print =<< mostDoors <$> getInput
 
 part2' :: TheMap -> Int
 part2' = length . Map.filter (>= 1000) . reachable
 
 part2 :: IO ()
-part2 = getInput >>= \(Right x) -> print $ part2' x
+part2 = print =<< part2' <$> getInput

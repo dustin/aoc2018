@@ -64,14 +64,10 @@ testConnections =
   ]
 
 testPart1 :: Assertion
-testPart1 = do
-  (Right p) <- getInput
-  assertEqual "" 3872 $ mostDoors p
+testPart1 = assertEqual "" 3872 =<< (mostDoors <$> getInput)
 
 testPart2 :: Assertion
-testPart2 = do
-  (Right p) <- getInput
-  assertEqual "" 8600 $ part2' p
+testPart2 = assertEqual "" 8600 =<< (part2' <$> getInput)
 
 
 tests :: [TestTree]

@@ -10,7 +10,7 @@ import           Day24
 
 testDamage :: Assertion
 testDamage = do
-  (Right armies) <- getInput' "input/day24.sample"
+  armies <- getInput' "input/day24.sample"
   let [g989] = filter (\Army{_initiative=i} -> i == 3) armies  -- immune
       [g4485] = filter (\Army{_initiative=i} -> i == 4) armies -- infection
 
@@ -21,15 +21,10 @@ testDamage = do
   assertEqual "inf g2 vs. imm g2" (989-84) u
 
 testPart1 :: Assertion
-testPart1 = do
-  (Right a) <-  getInput
-  assertEqual "" (Just 14854) (part1' a)
+testPart1 = assertEqual "" (Just 14854) =<< part1' <$> getInput
 
 testPart2 :: Assertion
-testPart2 = do
-  (Right a) <-  getInput
-  assertEqual "" 3467 (part2' a)
-
+testPart2 = assertEqual "" 3467 =<< part2' <$> getInput
 
 tests :: [TestTree]
 tests = [
