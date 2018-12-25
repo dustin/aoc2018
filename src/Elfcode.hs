@@ -165,7 +165,7 @@ align s = unlines . map padded $ lnscls
 instance Show Program where
   show (Program ir ops) = align $ "#ip " <> show ir <> "\n" <> intercalate "\n" (opss 0 (V.toList ops))
     where
-      opss _ []                 = []
+      opss _ []      = []
       opss o (op:xs) = anop op o : opss (o+1) xs
 
       anop (Op "addi" _ a) ip = sicmd "addi" a "+" ip
