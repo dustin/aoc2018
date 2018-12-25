@@ -20,7 +20,7 @@ prop_DivisorsUnique (Positive x) = divisors x == nub (divisors x)
 testPart1 :: Assertion
 testPart1 = assertEqual "regs" (2520,865,1,865,256,864) =<< evalp
   where evalp = do
-          (Right p) <- getInput
+          p <- getInput
           pure $ execute p 0 (0,0,0,0,0,0)
 
 testPart2 :: Assertion

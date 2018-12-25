@@ -15,18 +15,23 @@ module Elfcode (Params, Regs, Opfun, Op,
                 )
 where
 
-import           Control.Applicative  (liftA3)
-import qualified Data.Attoparsec.Text as A
-import           Data.Bits            ((.&.), (.|.))
-import           Data.Char            (isSpace)
-import           Data.List            (intercalate, transpose)
-import qualified Data.Map.Strict      as Map
-import           Data.Text            (Text, unpack)
-import qualified Data.Vector          as V
-import           Debug.Trace          (trace)
+import           Control.Applicative        (liftA3)
+import           Data.Bits                  ((.&.), (.|.))
+import           Data.Char                  (isSpace)
+import           Data.List                  (intercalate, transpose)
+import qualified Data.Map.Strict            as Map
+import           Data.Text                  (Text, unpack)
+import           Data.Text                  (pack)
+import qualified Data.Vector                as V
+import           Debug.Trace                (trace)
+import           Text.Megaparsec            (anySingle, skipManyTill, some)
+import           Text.Megaparsec.Char       (eol, lowerChar, space)
+import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           Control.DeepSeq      (NFData (..))
-import           GHC.Generics         (Generic)
+import           Control.DeepSeq            (NFData (..))
+import           GHC.Generics               (Generic)
+
+import           AoC                        (Parser)
 
 type Params = (Int,Int,Int)
 
@@ -189,26 +194,25 @@ instance Show Program where
         | otherwise = "r" <> show x -- register
       l = show -- literal
 
-parseProg :: A.Parser Program
+parseProg :: Parser Program
 parseProg = do
-  ip <- "#ip " *> A.decimal <* "\n"
-  ops <- op `A.sepBy` "\n"
+  ip <- "#ip " *> decimal <* "\n"
+  ops <- some op
 
   pure $ Program ip (V.fromList ops)
 
   where
-    op :: A.Parser Op
+    op :: Parser Op
     op = do
-      iname <- A.takeTill (== ' ')
+      iname <- pack <$> some lowerChar
       params <- nums <* comment
       pure $ Op iname (namedOps Map.! iname) params
 
-    nums :: A.Parser (Int,Int,Int)
+    nums :: Parser (Int,Int,Int)
     nums = liftA3 (,,) num num num
-    num :: A.Parser Int
-    num = A.skipSpace *> A.decimal
-    comment :: A.Parser Text
-    comment = A.takeTill (== '\n')
+    num :: Parser Int
+    num = space *> decimal
+    comment = skipManyTill anySingle eol
 
 
 evalOp :: Op -> Regs -> Regs

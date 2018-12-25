@@ -8,14 +8,12 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import qualified Data.Attoparsec.Text  as A
-import           Data.Text             (pack)
-
 import           Day21
 import           Elfcode
+import AoC (parseFile)
 
-getOrig :: IO (Either String Program)
-getOrig = A.parseOnly parseProg . pack <$> readFile "input/day21.orig"
+getOrig :: IO Program
+getOrig = parseFile "input/day21.orig" parseProg
 
 testInputIntegrity :: Assertion
 testInputIntegrity = do
@@ -25,13 +23,11 @@ testInputIntegrity = do
 
 testPart1 :: Assertion
 testPart1 = do
-  (Right p) <- getInput
+  p <- getInput
   assertEqual "" 3941014 $ head . filter (/= 0) . findR5s $ p
 
 testPart2 :: Assertion
-testPart2 = do
-  (Right p) <- getInput
-  assertEqual "" 13775890 $ part2' p
+testPart2 = assertEqual "" 13775890 =<< part2' <$> getInput
 
 
 tests :: [TestTree]

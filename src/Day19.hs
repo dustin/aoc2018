@@ -2,9 +2,9 @@
 
 module Day19 where
 
-import qualified Data.Attoparsec.Text as A
-import           Data.List            (union)
-import           Data.Text            (pack)
+import           Data.List (union)
+
+import           AoC       (parseFile)
 
 import           Elfcode
 
@@ -12,12 +12,12 @@ import           Elfcode
 -- Stuff for part1.
 --
 
-getInput :: IO (Either String Program)
-getInput = A.parseOnly parseProg . pack <$> readFile "input/day19"
+getInput :: IO Program
+getInput = parseFile "input/day19"  parseProg
 
 -- (2520,865,1,865,256,864)
 part1 :: IO ()
-part1 = getInput >>= \(Right prog) -> print $ execute prog 0 (0,0,0,0,0,0)
+part1 = getInput >>= \ prog -> print $ execute prog 0 (0,0,0,0,0,0)
 
 -- 27941760
 part2 :: IO ()

@@ -8,19 +8,20 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import qualified Data.Attoparsec.Text  as A
-import           Data.Text             (pack)
+import Data.Text (pack)
+import           Text.Megaparsec            (parse)
 
 import           Elfcode
+import           AoC                        (parseFile)
 
-getInput :: IO (Either String Program)
-getInput = A.parseOnly parseProg . pack <$> readFile "input/day21.orig"
+getInput :: IO Program
+getInput = parseFile "input/day21.orig" parseProg
 
 -- Verify we don't damage the input with our annotating Show
 testParserTransformation :: Assertion
 testParserTransformation = do
-  (Right p) <- getInput
-  assertEqual "" (Right p) (A.parseOnly parseProg . pack . show $ p)
+  p <- getInput
+  assertEqual "" (Right p) (parse parseProg "" . pack . show $ p)
 
 testAlign :: Assertion
 testAlign = do
