@@ -20,8 +20,7 @@ import           Data.Bits                  ((.&.), (.|.))
 import           Data.Char                  (isSpace)
 import           Data.List                  (intercalate, transpose)
 import qualified Data.Map.Strict            as Map
-import           Data.Text                  (Text, unpack)
-import           Data.Text                  (pack)
+import           Data.Text                  (Text, pack, unpack)
 import qualified Data.Vector                as V
 import           Debug.Trace                (trace)
 import           Text.Megaparsec            (anySingle, skipManyTill, some)
@@ -156,7 +155,7 @@ align s = unlines . map padded $ lnscls
   where
     lns = lines s
     strip = reverse . dropWhile isSpace . reverse
-    padded = strip . unwords . (zipWith (\n w -> take n (w <> repeat ' ')) colens)
+    padded = strip . unwords . zipWith (\n w -> take n (w <> repeat ' ')) colens
     lnscls = map cols lns
     colens = map (maximum . map length) $ transpose lnscls
     cols [] = []
