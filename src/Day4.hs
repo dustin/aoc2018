@@ -2,13 +2,15 @@
 
 module Day4 where
 
-import           Control.Applicative  ((<|>))
-import qualified Data.Map.Strict      as Map
+import           Control.Applicative        ((<|>))
+import qualified Data.Map.Strict            as Map
+import           Text.Megaparsec            (endBy)
+import           Text.Megaparsec.Char.Lexer (decimal)
 
-import qualified Data.Attoparsec.Text as A
-import           Data.Functor         (($>))
-import           Data.List            (sort)
-import           Data.Text            (pack)
+import           Data.Functor               (($>))
+import           Data.List                  (sort)
+
+import           AoC                        (Parser, parseFile)
 
 {-
 -- not a leap year...
@@ -42,22 +44,25 @@ data Event = Event TS Deet deriving (Eq, Show)
 instance Ord Event where
   compare (Event a _) (Event b _) = compare a b
 
-anEvent :: A.Parser Event
+anEvent :: Parser Event
 anEvent = Event <$> timestamp <*> deet
 
-  where deet :: A.Parser Deet
+  where deet :: Parser Deet
         deet = ("wakes up" $> Awake)
                <|> ("falls asleep" $> Asleep)
-               <|> Begins <$> ("Guard #" *> A.decimal <* " begins shift")
+               <|> Begins <$> ("Guard #" *> decimal <* " begins shift")
 
-        timestamp :: A.Parser TS
+        timestamp :: Parser TS
         timestamp = do
-          mon <- "[1518-" *> A.decimal <* "-"
-          day <- A.decimal <* " "
-          h <- A.decimal <* ":"
-          m <- A.decimal <* "]" <* " "
+          mon <- "[1518-" *> decimal <* "-"
+          day <- decimal <* " "
+          h <- decimal <* ":"
+          m <- decimal <* "]" <* " "
 
           pure $ TS (mon, day, h, m)
+
+parseEvents :: Parser [Event]
+parseEvents = anEvent `endBy` "\n"
 
 tsDiff :: TS -> TS -> Int
 tsDiff ta tb = fromEnum ta - fromEnum tb
@@ -90,9 +95,10 @@ sleepTime gi = foldr (\(l,h) o -> o + length [l..h] - 1) 0 $ sleepMins gi
 justMins :: GuardInfo -> [Int]
 justMins gi = concatMap (\(l,h) -> tail.reverse $ map (\(TS (_,_,_,m)) -> m) [l..h]) $ sleepMins gi
 
+-- "283 * 43 = 12169"
 part1 :: IO ()
 part1 = do
-  (Right ls) <- A.parseOnly (anEvent `A.sepBy` (A.char '\n')) <$> pack <$> readFile "input/day4"
+  ls <- parseFile "input/day4" parseEvents
   let grpd = grp (sort ls)
   let gsleeps = reverse . sort $ map (\g@(GuardInfo _ i _) -> (i, sleepTime g)) grpd
   let totals = Map.fromListWith (+) gsleeps
@@ -102,10 +108,10 @@ part1 = do
   let [(minute,_)] = Map.toList $ Map.filter (\x -> x == maximum counts) counts
   print $ show sleepiest <> " * " <> show minute <> " = " <> show (sleepiest * minute)
 
-
+-- "449 * 36 = 16164"
 part2 :: IO ()
 part2 = do
-  (Right ls) <- A.parseOnly (anEvent `A.sepBy` (A.char '\n')) <$> pack <$> readFile "input/day4"
+  ls <- parseFile "input/day4" parseEvents
   let grpd = grp (sort ls)
   let gsleeps = map (\g@(GuardInfo _ i _) -> (i, justMins g)) grpd
   let m = Map.fromListWith (Map.unionWith (+)) $ concatMap (\(g, mins) -> map (\m' -> (g,Map.singleton m' 1)) mins) gsleeps
