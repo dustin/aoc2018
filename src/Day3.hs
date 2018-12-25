@@ -2,20 +2,22 @@
 
 module Day3 where
 
-import qualified Data.Map.Strict      as Map
+import qualified Data.Map.Strict            as Map
 
-import qualified Data.Attoparsec.Text as A
-import           Data.Text            (pack)
+import           Text.Megaparsec            (endBy)
+import           Text.Megaparsec.Char.Lexer (decimal)
+
+import           AoC                        (Parser, parseFile)
 
 data Claim = Claim Int (Int,Int) (Int,Int) deriving (Show)
 
-aclaim :: A.Parser Claim
+aclaim :: Parser Claim
 aclaim = do
-  i <- "#" *> A.decimal <* " @ "
-  x <- A.decimal <* ","
-  y <- A.decimal <* ": "
-  w <- A.decimal <* "x"
-  h <- A.decimal
+  i <- "#" *> decimal <* " @ "
+  x <- decimal <* ","
+  y <- decimal <* ": "
+  w <- decimal <* "x"
+  h <- decimal
 
   pure $ Claim i (x,y) (w,h)
 
@@ -25,17 +27,16 @@ expand = concatMap (\(Claim _ (x,y) (w,h)) -> [(x',y') | x' <- [x .. x+w-1], y' 
 counts :: [Claim] -> Map.Map (Int,Int) Int
 counts = Map.fromListWith (+) . map (\(x,y) -> ((x,y),1)) . expand
 
-parseClaims :: [String] -> Either String [Claim]
-parseClaims = traverse (A.parseOnly aclaim . pack)
-
+-- 118858
 part1 :: IO ()
 part1 = do
-  (Right ls) <- parseClaims <$> lines <$> readFile "input/day3"
+  ls <- parseFile "input/day3" (aclaim `endBy` "\n")
   print $ length $ Map.filter (>1) $ counts ls
 
+-- Claim 1100 (355,404) (29,11)
 part2 :: IO ()
 part2 = do
-  (Right ls) <- parseClaims <$> lines <$> readFile "input/day3"
+  ls <- parseFile "input/day3" (aclaim `endBy` "\n")
   let cs = counts ls
   let a = filter (\c@(Claim _ _ _) -> let segs = expand [c] in total cs segs == length segs) ls
   print $ head a
