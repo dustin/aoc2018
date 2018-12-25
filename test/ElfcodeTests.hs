@@ -15,7 +15,7 @@ import           Elfcode
 import           AoC                        (parseFile)
 
 getInput :: IO Program
-getInput = parseFile "input/day21.orig" parseProg
+getInput = parseFile parseProg "input/day21.orig"
 
 -- Verify we don't damage the input with our annotating Show
 testParserTransformation :: Assertion

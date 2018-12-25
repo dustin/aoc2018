@@ -31,7 +31,7 @@ getInput :: IO [Nanobot]
 getInput = getInput' "input/day23"
 
 getInput' :: String -> IO [Nanobot]
-getInput' fn = parseFile fn (parseBot `endBy` "\n")
+getInput' = parseFile (parseBot `endBy` "\n")
 
 -- should be the square root of the squares of the differences on each axis.
 distance :: (Int,Int,Int) -> (Int,Int,Int) -> Int

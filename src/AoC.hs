@@ -22,8 +22,8 @@ import           Text.Megaparsec.Error (errorBundlePretty)
 type Parser = Parsec Void Text
 
 -- | Load a file (e.g. "input/day24") with the given parser.
-parseFile :: String -> Parser a -> IO a
-parseFile s f = do
+parseFile :: Parser a -> String -> IO a
+parseFile f s = do
   c <- pack <$> readFile s
   case parse f s c of
     (Left x)  -> fail (errorBundlePretty x)

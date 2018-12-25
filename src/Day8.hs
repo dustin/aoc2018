@@ -72,7 +72,7 @@ parseTree = do
     aNum = decimal <* space
 
 readInput' :: IO (Tree.Tree [Int])
-readInput' = parseFile "input/day8" parseTree
+readInput' = parseFile parseTree "input/day8"
 
 -- 42951
 part1 :: IO ()

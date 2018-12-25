@@ -95,10 +95,13 @@ sleepTime gi = foldr (\(l,h) o -> o + length [l..h] - 1) 0 $ sleepMins gi
 justMins :: GuardInfo -> [Int]
 justMins gi = concatMap (\(l,h) -> tail.reverse $ map (\(TS (_,_,_,m)) -> m) [l..h]) $ sleepMins gi
 
+getInput :: IO [Event]
+getInput = parseFile parseEvents "input/day4"
+
 -- "283 * 43 = 12169"
 part1 :: IO ()
 part1 = do
-  ls <- parseFile "input/day4" parseEvents
+  ls <- getInput
   let grpd = grp (sort ls)
   let gsleeps = reverse . sort $ map (\g@(GuardInfo _ i _) -> (i, sleepTime g)) grpd
   let totals = Map.fromListWith (+) gsleeps
@@ -111,7 +114,7 @@ part1 = do
 -- "449 * 36 = 16164"
 part2 :: IO ()
 part2 = do
-  ls <- parseFile "input/day4" parseEvents
+  ls <- getInput
   let grpd = grp (sort ls)
   let gsleeps = map (\g@(GuardInfo _ i _) -> (i, justMins g)) grpd
   let m = Map.fromListWith (Map.unionWith (+)) $ concatMap (\(g, mins) -> map (\m' -> (g,Map.singleton m' 1)) mins) gsleeps

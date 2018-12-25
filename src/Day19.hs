@@ -13,7 +13,7 @@ import           Elfcode
 --
 
 getInput :: IO Program
-getInput = parseFile "input/day19"  parseProg
+getInput = parseFile parseProg "input/day19"
 
 -- (2520,865,1,865,256,864)
 part1 :: IO ()

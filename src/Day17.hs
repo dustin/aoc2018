@@ -70,7 +70,7 @@ getInput :: IO Scan
 getInput = getInput' "input/day17"
 
 getInput' :: String -> IO Scan
-getInput' fn = parseFile fn parseScans
+getInput' = parseFile parseScans
 
 pour :: Scan -> Scan
 pour s@(Scan m) = Scan $ down (500,mny) m

@@ -79,7 +79,7 @@ getInput :: IO [Army]
 getInput = getInput' "input/day24"
 
 getInput' :: String -> IO [Army]
-getInput' s = parseFile s parseArmies
+getInput' = parseFile parseArmies
 
 targetOrder :: [Army] -> [Army]
 targetOrder = sortBy (comparing (Down . effpwr) <> comparing (Down . _initiative))

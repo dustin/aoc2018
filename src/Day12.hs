@@ -46,7 +46,7 @@ parseInput = do
       pure (pots, tn)
 
 getInput :: IO Input
-getInput = parseFile "input/day12" parseInput
+getInput = parseFile parseInput "input/day12"
 
 stateSum :: Pots -> Int
 stateSum (Pots a) = sum $ fst <$> filter snd (Ar.assocs a)

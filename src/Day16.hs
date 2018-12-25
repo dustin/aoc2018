@@ -39,7 +39,7 @@ matches :: Test -> [Opfun]
 matches t = filter (evalTest t) allOps
 
 getInput :: IO [Test]
-getInput = parseFile "input/day16" (some parseTest)
+getInput = parseFile (some parseTest) "input/day16"
 
 -- 563
 part1' :: [Test] -> Int
@@ -92,7 +92,7 @@ parseProgram = do
         rs [a,b,c,d] = (a,b,c,d,0,0)
 
 getInput2 :: IO Prog
-getInput2 = parseFile "input/day16" parseProgram
+getInput2 = parseFile parseProgram "input/day16"
 
 part2' :: Prog -> Regs
 part2' (Prog tests inputs) =

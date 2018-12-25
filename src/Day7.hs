@@ -26,7 +26,7 @@ parseReq = Requirement <$ "Step " <*> letterChar
            <* " must be finished before step " <*> letterChar <* " can begin."
 
 readInput :: IO [Requirement]
-readInput = parseFile "input/day7" (parseReq `endBy` "\n")
+readInput = parseFile (parseReq `endBy` "\n") "input/day7"
 
 -- Figure out an order in which tasks can be performed.
 trav :: Set.Set Char -> Map.Map Char [Char] -> [Char]

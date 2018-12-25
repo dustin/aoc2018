@@ -13,7 +13,7 @@ import           Elfcode
 import AoC (parseFile)
 
 getOrig :: IO Program
-getOrig = parseFile "input/day21.orig" parseProg
+getOrig = parseFile parseProg "input/day21.orig"
 
 testInputIntegrity :: Assertion
 testInputIntegrity = do

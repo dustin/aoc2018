@@ -86,7 +86,7 @@ mostDoors :: TheMap -> Int
 mostDoors = maximum . reachable
 
 getInput :: IO TheMap
-getInput = parseFile "input/day20" parseInput
+getInput = parseFile parseInput "input/day20"
 
 -- 3872
 part1 :: IO ()

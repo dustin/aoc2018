@@ -29,7 +29,7 @@ parseVec = do
   where num = space *> signed space decimal <* space
 
 getInput :: IO [Vec]
-getInput = parseFile "input/day10" (parseVec `endBy` "\n")
+getInput = parseFile (parseVec `endBy` "\n") "input/day10"
 
 -- Move a vector to where it should be after n seconds
 vecMove :: Int -> Vec -> Vec

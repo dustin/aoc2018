@@ -8,7 +8,7 @@ import           AoC      (parseFile)
 import           Elfcode
 
 getInput :: IO Program
-getInput = parseFile "input/day21" parseProg
+getInput = parseFile parseProg "input/day21"
 
 findR5s :: Program -> [Int]
 findR5s p = map (\(_,rs) -> reg rs 5) $ iterate (uncurry (execUntil p (\(ip,_) -> ip == 28))) (0,(0,0,0,0,0,0))
