@@ -2,12 +2,15 @@
 
 module Day16 where
 
-import           Control.Applicative  ((<|>))
-import           Control.Monad        (replicateM)
-import qualified Data.Attoparsec.Text as A
-import           Data.List            (foldl')
-import qualified Data.Map.Strict      as Map
-import           Data.Text            (pack)
+import           Control.Applicative        ((<|>))
+import           Control.Monad              (replicateM)
+import           Data.List                  (foldl')
+import qualified Data.Map.Strict            as Map
+import           Text.Megaparsec            (sepBy, some)
+import           Text.Megaparsec.Char       (space)
+import           Text.Megaparsec.Char.Lexer (decimal)
+
+import           AoC                        (Parser, parseFile)
 
 import           Elfcode
 
@@ -17,11 +20,11 @@ import           Elfcode
 
 data Test = Test Regs Regs Regs deriving (Show)
 
-parseTest :: A.Parser Test
+parseTest :: Parser Test
 parseTest = do
-  a <- "Before: [" *> A.decimal `A.sepBy` ", " <* "]" <* A.skipSpace
-  b <- A.decimal `A.sepBy` " " <* A.skipSpace
-  c <- "After:  [" *> A.decimal `A.sepBy` ", " <* "]" <* A.skipSpace
+  a <- "Before: [" *> decimal `sepBy` ", " <* "]" <* space
+  b <- decimal `sepBy` " " <* space
+  c <- "After:  [" *> decimal `sepBy` ", " <* "]" <* space
 
   pure $ Test (rs a) (rs b) (rs c)
 
@@ -35,17 +38,15 @@ evalTest (Test before (_,v1,v2,v3,0,0) after) f =
 matches :: Test -> [Opfun]
 matches t = filter (evalTest t) allOps
 
-getInput :: IO (Either String [Test])
-getInput = A.parseOnly (A.many1 parseTest) . pack <$> readFile "input/day16"
+getInput :: IO [Test]
+getInput = parseFile "input/day16" (some parseTest)
 
 -- 563
 part1' :: [Test] -> Int
 part1' = length . filter (>= 3) . map (length . matches)
 
 part1 :: IO ()
-part1 = do
-  (Right tests) <- getInput
-  print $ part1' tests
+part1 = print =<< part1' <$> getInput
 
 --
 -- Stuff for part 2 below.
@@ -79,19 +80,19 @@ figureOutOpcodes tests = Map.fromList <$> fit passesSome (Map.keys gt) allOps
 
 data Prog = Prog [Test] [Regs]
 
-parseProgram :: A.Parser Prog
+parseProgram :: Parser Prog
 parseProgram = do
-  tests <- A.many1 parseTest
-  _ <- A.skipSpace
-  regs <- A.many1 reg
+  tests <- some parseTest
+  _ <- space
+  regs <- some reg
 
   pure $ Prog tests (map rs regs)
 
-  where reg = replicateM 4 (A.decimal <* A.skipSpace)
+  where reg = replicateM 4 (decimal <* space)
         rs [a,b,c,d] = (a,b,c,d,0,0)
 
-getInput2 :: IO (Either String Prog)
-getInput2 = A.parseOnly parseProgram . pack <$> readFile "input/day16"
+getInput2 :: IO Prog
+getInput2 = parseFile "input/day16" parseProgram
 
 part2' :: Prog -> Regs
 part2' (Prog tests inputs) =
@@ -100,6 +101,4 @@ part2' (Prog tests inputs) =
 
 -- (629,629,4,2)
 part2 :: IO ()
-part2 = do
-  (Right p) <- getInput2
-  print $ part2' p
+part2 = print =<< part2' <$> getInput2
