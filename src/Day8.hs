@@ -2,13 +2,15 @@
 
 module Day8 where
 
-import           Control.Monad             (replicateM)
-import           Control.Monad.Trans.State (State, evalState, get, put)
-import qualified Data.Attoparsec.Text      as A
-import           Data.Foldable             (fold)
-import           Data.List                 (mapAccumL)
-import           Data.Text                 (pack)
-import qualified Data.Tree                 as Tree
+import           Control.Monad              (replicateM)
+import           Control.Monad.Trans.State  (State, evalState, get, put)
+import           Data.Foldable              (fold)
+import           Data.List                  (mapAccumL)
+import qualified Data.Tree                  as Tree
+import           Text.Megaparsec.Char       (space)
+import           Text.Megaparsec.Char.Lexer (decimal)
+
+import           AoC                        (Parser, parseFile)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"
@@ -56,7 +58,7 @@ readTree' = evalState getTree
             []   -> error "get1: empty list"
 
 -- Or just parse it directly into the right structure.
-parseTree :: A.Parser (Tree.Tree [Int])
+parseTree :: Parser (Tree.Tree [Int])
 parseTree = do
   c <- aNum
   m <- aNum
@@ -66,14 +68,13 @@ parseTree = do
   pure $ Tree.Node ms cs
 
   where
-    aNum :: A.Parser Int
-    aNum = A.decimal <* A.skipSpace
+    aNum :: Parser Int
+    aNum = decimal <* space
 
 readInput' :: IO (Tree.Tree [Int])
-readInput' = do
-  (Right l) <- A.parseOnly parseTree <$> pack <$> readFile "input/day8"
-  pure l
+readInput' = parseFile "input/day8" parseTree
 
+-- 42951
 part1 :: IO ()
 part1 = print =<< (sum .concat . Tree.flatten) <$> readInput
 
@@ -89,6 +90,7 @@ count (Tree.Node xs subs) = foldr (\x o -> o + count (subs `at` x)) 0 xs
           | i > length l = Tree.Node [] []
           | otherwise = l !! (i-1)
 
+-- 18568
 part2 :: IO ()
 part2 = print =<< count <$> readInput
 
