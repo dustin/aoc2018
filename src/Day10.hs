@@ -2,18 +2,21 @@
 
 module Day10 where
 
-import           Control.Monad        (mapM_)
-import qualified Data.Attoparsec.Text as A
-import           Data.List            (sortOn)
-import           Data.List.Extra      (chunksOf)
-import qualified Data.Map.Strict      as Map
-import           Data.Text            (pack)
+import           Control.Monad              (mapM_)
+import           Data.List                  (sortOn)
+import           Data.List.Extra            (chunksOf)
+import qualified Data.Map.Strict            as Map
+import           Text.Megaparsec            (endBy)
+import           Text.Megaparsec.Char       (space)
+import           Text.Megaparsec.Char.Lexer (decimal, signed)
+
+import           AoC                        (Parser, parseFile)
 
 -- position=< 9,  1> velocity=< 0,  2>
 
 data Vec = Vec (Int,Int) (Int,Int) deriving (Eq, Ord, Show)
 
-parseVec :: A.Parser Vec
+parseVec :: Parser Vec
 parseVec = do
   x <- "position=<" *> num <* ","
   y <- num <* "> velocity=<"
@@ -23,10 +26,10 @@ parseVec = do
 
   pure $ Vec (x,y) (vx,vy)
 
-  where num = A.skipSpace *> A.signed A.decimal <* A.skipSpace
+  where num = space *> signed space decimal <* space
 
-getInput :: IO (Either String [Vec])
-getInput = A.parseOnly (parseVec `A.sepBy` A.char '\n') . pack <$> readFile "input/day10"
+getInput :: IO [Vec]
+getInput = parseFile "input/day10" (parseVec `endBy` "\n")
 
 -- Move a vector to where it should be after n seconds
 vecMove :: Int -> Vec -> Vec
@@ -64,7 +67,7 @@ findMin f (x:xs) = go xs x
 
 part1 :: IO ()
 part1 = do
-  (Right vs) <- getInput
+  vs <- getInput
   let vss = map (\n -> let vs' = originate (vecMove n <$> vs) in (n, bounds vs', vs')) [1..100000]
   let (n,_,_) = findMin (\(_,b,_) -> b) vss
   print n
