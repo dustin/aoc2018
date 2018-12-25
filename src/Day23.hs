@@ -22,7 +22,7 @@ parseBot = do
   z <- num <* ">, r="
   r <- num
 
-  Nanobot <$> (x,y,z) r
+  pure $ Nanobot (x,y,z) r
 
     where num  = signed space decimal
 
