@@ -2,13 +2,13 @@
 
 module Day21Bench where
 
-import Criterion (Benchmark, bench, bgroup, env, nf, whnf, nfIO)
-import Criterion.Main (defaultMain)
-import System.IO (IOMode(..), Handle, withFile)
-import Control.DeepSeq (NFData(..))
+import           Control.DeepSeq (NFData (..))
+import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
+import           Criterion.Main  (defaultMain)
+import           System.IO       (Handle, IOMode (..), withFile)
 
-import Day21
-import Elfcode
+import           Day21
+import           Elfcode
 
 tests :: [Benchmark]
 tests = [

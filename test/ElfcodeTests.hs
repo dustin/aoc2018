@@ -8,11 +8,11 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import Data.Text (pack)
-import           Text.Megaparsec            (parse)
+import           Data.Text             (pack)
+import           Text.Megaparsec       (parse)
 
+import           AoC                   (parseFile)
 import           Elfcode
-import           AoC                        (parseFile)
 
 getInput :: IO Program
 getInput = parseFile parseProg "input/day21.orig"

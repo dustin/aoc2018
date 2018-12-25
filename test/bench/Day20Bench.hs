@@ -2,15 +2,15 @@
 
 module Day20Bench where
 
-import Criterion (Benchmark, bench, bgroup, env, nf, whnf, nfIO)
-import Criterion.Main (defaultMain)
-import System.IO (IOMode(..), Handle, withFile)
-import Control.DeepSeq (NFData(..))
+import           Control.DeepSeq (NFData (..))
+import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
+import           Criterion.Main  (defaultMain)
+import           System.IO       (Handle, IOMode (..), withFile)
 
-import Data.Text (pack)
-import Text.Megaparsec (parse)
+import           Data.Text       (pack)
+import           Text.Megaparsec (parse)
 
-import Day20
+import           Day20
 
 tests :: [Benchmark]
 tests = [

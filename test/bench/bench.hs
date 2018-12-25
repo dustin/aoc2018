@@ -1,14 +1,14 @@
 module Main (main) where
 
-import Criterion (bench, bgroup, env, nf, whnf, nfIO)
-import Criterion.Main (defaultMain)
-import System.IO (IOMode(..), Handle, withFile)
+import           Criterion      (bench, bgroup, env, nf, nfIO, whnf)
+import           Criterion.Main (defaultMain)
+import           System.IO      (Handle, IOMode (..), withFile)
 
-import Day15Bench
-import Day18Bench
-import Day20Bench
-import Day21Bench
-import Day22Bench
+import           Day15Bench
+import           Day18Bench
+import           Day20Bench
+import           Day21Bench
+import           Day22Bench
 
 main :: IO ()
 main = defaultMain [
