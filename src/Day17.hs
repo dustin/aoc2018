@@ -3,12 +3,15 @@
 
 module Day17 where
 
-import           Codec.Picture        (PixelRGB8 (..), generateImage, writePng)
-import           Control.Applicative  ((<|>))
-import qualified Data.Attoparsec.Text as A
-import           Data.List            (intercalate)
-import qualified Data.Map.Strict      as Map
-import           Data.Text            (pack)
+import           Codec.Picture              (PixelRGB8 (..), generateImage,
+                                             writePng)
+import           Control.Applicative        ((<|>))
+import           Data.List                  (intercalate)
+import qualified Data.Map.Strict            as Map
+import           Text.Megaparsec            (endBy, satisfy, try)
+import           Text.Megaparsec.Char.Lexer (decimal)
+
+import           AoC                        (Parser, parseFile)
 
 newtype Clay = Clay (Int,Int) deriving (Show)
 
@@ -32,12 +35,12 @@ instance Show Scan where
       row y = map (\x -> Map.findWithDefault '.' (x,y) m) [mnx - 1 ..mxx + 1]
 
 
-parseScans :: A.Parser Scan
+parseScans :: Parser Scan
 parseScans = do
-  clays <- parseClay `A.sepBy` "\n"
+  clays <- parseClay `endBy` "\n"
   pure $ Scan $ Map.fromList (map (\(Clay x) -> (x,'#')) (mconcat clays))
 
-parseClay :: A.Parser [Clay]
+parseClay :: Parser [Clay]
 parseClay = do
   (axis1, points1) <- parseAxis <* ", "
   (_, points2) <- parseAxis
@@ -47,27 +50,27 @@ parseClay = do
   pure [Clay (x,y) | x <- xs, y <- ys]
 
   where
-    parseAxis :: A.Parser (Char, [Int])
+    parseAxis :: Parser (Char, [Int])
     parseAxis = do
-      axis <- A.satisfy (`elem` ['x', 'y']) <* "="
-      nums <- numSeq <|> aNum
+      axis <- satisfy (`elem` ['x', 'y']) <* "="
+      nums <- try numSeq <|> aNum
 
       pure (axis, nums)
 
-    aNum :: A.Parser [Int]
-    aNum = (:[]) <$> A.decimal
+    aNum :: Parser [Int]
+    aNum = (:[]) <$> decimal
 
-    numSeq :: A.Parser [Int]
+    numSeq :: Parser [Int]
     numSeq = do
-      a <- A.decimal <* ".."
-      b <- A.decimal
+      a <- decimal <* ".."
+      b <- decimal
       pure [a..b]
 
-getInput :: IO (Either String Scan)
+getInput :: IO Scan
 getInput = getInput' "input/day17"
 
-getInput' :: String -> IO (Either String Scan)
-getInput' fn = A.parseOnly parseScans . pack <$> readFile fn
+getInput' :: String -> IO Scan
+getInput' fn = parseFile fn parseScans
 
 pour :: Scan -> Scan
 pour s@(Scan m) = Scan $ down (500,mny) m
@@ -106,7 +109,7 @@ countWater (Scan m) = length . Map.filter (`elem` ['~', '|']) $ m
 -- 33362
 part1 :: IO ()
 part1 = do
-  (Right scans) <- getInput
+  scans <- getInput
   let s' = pour scans
   print s'
   print $ countWater s'
@@ -117,13 +120,13 @@ countWater2 (Scan m) = length . Map.filter (== '~') $ m
 -- 27801
 part2 :: IO ()
 part2 = do
-  (Right scans) <- getInput
+  scans <- getInput
   let s' = pour scans
   print $ countWater2 s'
 
 img :: String -> IO ()
 img s = do
-  (Right scans) <- getInput' s
+  scans <- getInput' s
   let s' = pour scans
 
   writePng "day17.png" (mkImg s')

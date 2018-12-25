@@ -10,7 +10,7 @@ import           Day17
 
 run17 :: FilePath -> String -> IO ()
 run17 inf outf = do
-  (Right s) <- Day17.getInput' inf
+  s <- Day17.getInput' inf
   let s' = Day17.pour s
   writeFile outf (show s' <> "\n" <> show (Day17.countWater s', Day17.countWater2 s'))
 
