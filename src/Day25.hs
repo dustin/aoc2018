@@ -2,27 +2,22 @@
 
 module Day25 where
 
+import           Data.Graph                 (Graph)
+import qualified Data.Graph                 as Graph
 import qualified Data.Map.Strict            as Map
 import           Text.Megaparsec            (endBy, optional)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
-import           Data.Graph                 (Graph)
-import qualified Data.Graph                 as Graph
-
 import           AoC                        (Parser, parseFile)
 
 type XYZT = (Int,Int,Int,Int)
 
-liftA4 :: Applicative f => (a1 -> a2 -> a3 -> a4 -> b) -> f a1 -> f a2 -> f a3 -> f a4 -> f b
-liftA4 f a b c d = f <$> a <*> b <*> c <*> d
-
-parseQuad :: Parser XYZT
-parseQuad = liftA4 (,,,) num num num num
-  where num = space *> signed space decimal <* optional ","
-
 parseQuads :: Parser [XYZT]
 parseQuads = parseQuad `endBy` "\n"
+  where
+    parseQuad = (,,,) <$> num <*> num <*> num <*> num
+    num = space *> signed space decimal <* optional ","
 
 getInput' :: String -> IO [XYZT]
 getInput' = parseFile parseQuads
