@@ -2,11 +2,7 @@
 
 module Day20Bench where
 
-import           Control.DeepSeq (NFData (..))
-import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
-import           Criterion.Main  (defaultMain)
-import           System.IO       (Handle, IOMode (..), withFile)
-
+import           Criterion       (Benchmark, bench, bgroup, env, nf)
 import           Data.Text       (pack)
 import           Text.Megaparsec (parse)
 

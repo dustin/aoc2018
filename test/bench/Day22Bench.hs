@@ -3,9 +3,7 @@
 module Day22Bench where
 
 import           Control.DeepSeq (NFData (..))
-import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
-import           Criterion.Main  (defaultMain)
-import           System.IO       (Handle, IOMode (..), withFile)
+import           Criterion       (Benchmark, bench, bgroup, env, nf)
 
 import           Day22
 import           Search          (dijkstra)

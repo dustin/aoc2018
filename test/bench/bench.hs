@@ -1,8 +1,7 @@
 module Main (main) where
 
-import           Criterion      (bench, bgroup, env, nf, nfIO, whnf)
+import           Criterion      (bgroup)
 import           Criterion.Main (defaultMain)
-import           System.IO      (Handle, IOMode (..), withFile)
 
 import           AoCBench
 import           Day15Bench

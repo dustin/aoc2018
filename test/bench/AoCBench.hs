@@ -2,12 +2,7 @@
 
 module AoCBench where
 
-import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
-import           Criterion.Main  (defaultMain)
-import           System.IO       (Handle, IOMode (..), withFile)
-
-import           Data.Text       (pack)
-import           Text.Megaparsec (parse)
+import           Criterion (Benchmark, bench, whnf)
 
 import           AoC
 

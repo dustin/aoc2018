@@ -2,10 +2,7 @@
 
 module Day21Bench where
 
-import           Control.DeepSeq (NFData (..))
-import           Criterion       (Benchmark, bench, bgroup, env, nf, nfIO, whnf)
-import           Criterion.Main  (defaultMain)
-import           System.IO       (Handle, IOMode (..), withFile)
+import           Criterion (Benchmark, bench, bgroup, env, nf, whnf)
 
 import           Day21
 import           Elfcode
