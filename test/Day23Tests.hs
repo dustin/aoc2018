@@ -35,14 +35,10 @@ testBotRange = mapM_ (\(t, want) -> assertEqual (show t) want (inRange (Nanobot 
   ]
 
 testPart1 :: Assertion
-testPart1 = do
-  (Right p) <- getInput
-  assertEqual "in range" 950 $ part1' p
+testPart1 = assertEqual "in range" 950 =<< part1' <$> getInput
 
 testPart2 :: Assertion
-testPart2 = do
-  (Right p) <- getInput
-  assertEqual "best point" 86871407 $ part2' p
+testPart2 = assertEqual "best point" 86871407 =<< part2' <$> getInput
 
 tests :: [TestTree]
 tests = [

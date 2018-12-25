@@ -32,7 +32,6 @@ library:
     - edit-distance
     - text
     - deepseq
-    - attoparsec
     - time
     - parallel
     - transformers
@@ -73,7 +72,6 @@ tests:
     - megaparsec
     - text
     - containers
-    - attoparsec
 
 benchmarks:
   aoc-bench:

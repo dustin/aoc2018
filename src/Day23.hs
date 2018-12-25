@@ -2,17 +2,21 @@
 
 module Day23 where
 
-import qualified Data.Attoparsec.Text as A
-import           Data.Foldable        (maximumBy)
-import           Data.Foldable        (foldl')
-import           Data.Ord             (comparing)
-import           Data.Text            (pack)
+import           Data.Foldable              (maximumBy)
+import           Data.Foldable              (foldl')
+import           Data.Ord                   (comparing)
+
+import           Text.Megaparsec            (endBy)
+import           Text.Megaparsec.Char       (space)
+import           Text.Megaparsec.Char.Lexer (decimal, signed)
+
+import           AoC                        (Parser, parseFile)
 
 type Pos = (Int,Int,Int)
 
 data Nanobot = Nanobot !Pos !Int deriving (Show)
 
-parseBot :: A.Parser Nanobot
+parseBot :: Parser Nanobot
 parseBot = do
   x <- "pos=<" *> num <* ","
   y <- num <* ","
@@ -21,13 +25,13 @@ parseBot = do
 
   pure $ Nanobot (x,y,z) r
 
-    where num  = A.signed A.decimal
+    where num  = signed space decimal
 
-getInput :: IO (Either String [Nanobot])
+getInput :: IO [Nanobot]
 getInput = getInput' "input/day23"
 
-getInput' :: String -> IO (Either String [Nanobot])
-getInput' fn = A.parseOnly (parseBot `A.sepBy` "\n") . pack <$> readFile fn
+getInput' :: String -> IO [Nanobot]
+getInput' fn = parseFile fn (parseBot `endBy` "\n")
 
 -- should be the square root of the squares of the differences on each axis.
 distance :: (Int,Int,Int) -> (Int,Int,Int) -> Int
@@ -46,9 +50,7 @@ part1' :: [Nanobot] -> Int
 part1' bots = length $ filter (inRange (strongest bots)) bots
 
 part1 :: IO ()
-part1 = do
-  (Right bots) <- getInput
-  print $ part1' bots
+part1 = print =<< part1' <$> getInput
 
 sumIf :: (a -> Bool) -> [a] -> Int
 sumIf f = foldl' (\o x -> o + if f x then 1 else 0) 0
@@ -95,6 +97,4 @@ part2' :: [Nanobot] -> Int
 part2' bots = distance (0,0,0) $ towardsZero bots (mostReachablePoint bots) 100000
 
 part2 :: IO ()
-part2 = do
-  (Right bots) <- getInput' "input/day23"
-  print $ part2' bots
+part2 = print =<< part2' <$> getInput
