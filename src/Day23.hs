@@ -20,9 +20,7 @@ parseBot = do
   x <- "pos=<" *> num <* ","
   y <- num <* ","
   z <- num <* ">, r="
-  r <- num
-
-  pure $ Nanobot (x,y,z) r
+  Nanobot (x,y,z) <$> num
 
     where num  = signed space decimal
 
