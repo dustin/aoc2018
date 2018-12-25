@@ -2,8 +2,7 @@
 
 module Day23 where
 
-import           Data.Foldable              (maximumBy)
-import           Data.Foldable              (foldl')
+import           Data.Foldable              (foldl', maximumBy)
 import           Data.Ord                   (comparing)
 
 import           Text.Megaparsec            (endBy)
@@ -23,7 +22,7 @@ parseBot = do
   z <- num <* ">, r="
   r <- num
 
-  pure $ Nanobot (x,y,z) r
+  Nanobot <$> (x,y,z) r
 
     where num  = signed space decimal
 

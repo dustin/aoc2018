@@ -30,8 +30,7 @@ play p m = let players = [1..p]
 
 
 part1 :: IO ()
-part1 = do
-  print $ play 428 72061
+part1 = print $ play 428 72061
 
 -- Seq is a lot less dumb than lists for this problem.  Did it for part 2
 
@@ -61,5 +60,4 @@ play' p m = let players = [1..p]
 
 
 part2 :: IO ()
-part2 = do
-  print $ play' 428 7206100
+part2 = print $ play' 428 7206100
