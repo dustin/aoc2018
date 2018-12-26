@@ -6,12 +6,13 @@ import           Control.Monad              (mapM_)
 import           Data.List                  (sortOn)
 import           Data.List.Extra            (chunksOf)
 import qualified Data.Map.Strict            as Map
+import           Data.Ord                   (comparing)
 import           Text.Megaparsec            (endBy)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
 import           AoC                        (Parser, parseFile)
-import Search (findMin)
+import           Search                     (binSearch)
 
 -- position=< 9,  1> velocity=< 0,  2>
 
@@ -66,9 +67,10 @@ part1 = do
   drawVecs $ vecMove n <$> vs
 
 part2' :: [Vec] -> Int
-part2' vs = n
-  where (n,_,_) = findMin (\(_,b,_) -> b) vss
-        vss = map (\n' -> let vs' = originate (vecMove n' <$> vs) in (n', bounds vs', vs')) [1..100000]
+part2' vs = binSearch checkBounds 0 100000
+  where
+    checkBounds n = comparing sizeAt (n+1) n
+    sizeAt n = bounds $ originate (vecMove n <$> vs)
 
 part2 :: IO ()
 part2 = print =<< part2' <$> getInput
