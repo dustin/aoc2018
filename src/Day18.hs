@@ -6,7 +6,7 @@ import qualified Data.Array.Unboxed as A
 import           Data.Ix            (Ix)
 import           Data.List          (intercalate)
 
-import Search (findCycle)
+import           Search             (findCycle)
 
 type Thing = Char
 

@@ -1,6 +1,6 @@
 module Day1 where
 
-import Search (findCycle)
+import           Search (findCycle)
 
 getInput :: IO [Int]
 getInput = map pn . lines <$> readFile "input/day1"

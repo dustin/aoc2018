@@ -4,7 +4,6 @@ import           Test.Tasty
 
 import qualified ElfcodeTests
 
-import qualified Day1Tests
 import qualified Day10Tests
 import qualified Day11Tests
 import qualified Day15Tests
@@ -12,6 +11,7 @@ import qualified Day16Tests
 import qualified Day17Tests
 import qualified Day18Tests
 import qualified Day19Tests
+import qualified Day1Tests
 import qualified Day20Tests
 import qualified Day21Tests
 import qualified Day22Tests

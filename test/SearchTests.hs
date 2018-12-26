@@ -6,7 +6,7 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import           Data.List             (sort, elemIndex)
+import           Data.List             (elemIndex, sort)
 
 import           Search
 
