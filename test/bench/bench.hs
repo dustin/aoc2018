@@ -4,6 +4,7 @@ import           Criterion      (bgroup)
 import           Criterion.Main (defaultMain)
 
 import           AoCBench
+import           Day10Bench
 import           Day15Bench
 import           Day18Bench
 import           Day20Bench
@@ -13,6 +14,7 @@ import           Day22Bench
 main :: IO ()
 main = defaultMain [
   bgroup "aoc" AoCBench.tests,
+  bgroup "day10" Day10Bench.tests,
   bgroup "day15" Day15Bench.tests,
   bgroup "day18" Day18Bench.tests,
   bgroup "day20" Day20Bench.tests,
