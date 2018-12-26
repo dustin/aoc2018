@@ -5,7 +5,8 @@ module Day18 where
 import qualified Data.Array.Unboxed as A
 import           Data.Ix            (Ix)
 import           Data.List          (intercalate)
-import qualified Data.Map.Strict    as Map
+
+import Search (findCycle)
 
 type Thing = Char
 
@@ -73,14 +74,6 @@ ofType w t = length $ filter (== t) (A.elems w)
 -- 467819
 part1 :: IO ()
 part1 = print =<< score . tx 10 <$> getInput
-
--- Get the position of the start of the first cycle and the cycle length from a list
-findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int)
-findCycle f = go 0 mempty
-  where go n mem (x:xs) = case Map.lookup t mem of
-                            Nothing -> go (n+1) (Map.insert t n mem) xs
-                            Just o  -> (o,n - o)
-          where t = f x
 
 score :: World -> Int
 score w = ofType w trees * ofType w lumberyard

@@ -9,12 +9,21 @@ Portability : POSIX
 
 Things I use for searching space in AoC.
 -}
-module Search (dijkstra', dijkstra, resolveDijkstra, binSearch) where
+module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, findCycle) where
 
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.PQueue.Min as Q
 import qualified Data.Set        as Set
+
+
+-- Get the position of the start of the first cycle and the cycle length from a list
+findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int)
+findCycle f = go 0 mempty
+  where go n mem (x:xs) = case Map.lookup t mem of
+                            Nothing -> go (n+1) (Map.insert t n mem) xs
+                            Just o  -> (o,n - o)
+          where t = f x
 
 -- Tests for this are in Day22.
 
