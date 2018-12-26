@@ -14,7 +14,8 @@ cycling :: Int -> Int -> [Int]
 cycling a b = let (h,xs) = splitAt a [0..] in h <> cycle (take b xs)
 
 prop_findCycle :: NonNegative (Small Int) -> Positive (Small Int) -> Bool
-prop_findCycle (NonNegative (Small a)) (Positive (Small b)) = findCycle id (cycling a b) == (a,b)
+prop_findCycle (NonNegative (Small a)) (Positive (Small b)) = findCycle id cl == (a,b,cl !! a)
+  where cl = cycling a b
 
 -- Ended up not using this.
 cyclen :: Eq a => [a] -> Maybe Int

@@ -18,11 +18,11 @@ import qualified Data.Set        as Set
 
 
 -- Get the position of the start of the first cycle and the cycle length from a list
-findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int)
+findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int,a)
 findCycle f = go 0 mempty
   where go n mem (x:xs) = case Map.lookup t mem of
                             Nothing -> go (n+1) (Map.insert t n mem) xs
-                            Just o  -> (o,n - o)
+                            Just o  -> (o,n - o,x)
           where t = f x
 
 -- Tests for this are in Day22.

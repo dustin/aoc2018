@@ -82,7 +82,7 @@ score w = ofType w trees * ofType w lumberyard
 
 part2' :: World -> Int
 part2' w = let allstates = iterate tx1 w
-               (f,cl) = findCycle id allstates
+               (f,cl,_) = findCycle id allstates
                rep = drop f allstates
                off = (1000000000 - f) `mod` cl
                w' = head . drop off $ rep in
