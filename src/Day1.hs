@@ -1,26 +1,21 @@
 module Day1 where
 
-import           Data.Set (Set)
-import qualified Data.Set as Set
+import Search (findCycle)
 
-pn :: String -> Int
-pn ('+':xs) = read xs
-pn l        = read l
+getInput :: IO [Int]
+getInput = map pn . lines <$> readFile "input/day1"
+  where
+    pn :: String -> Int
+    pn ('+':xs) = read xs
+    pn l        = read l
 
 -- 576
 part1 :: IO ()
-part1 = print =<< sum . map pn . lines <$> readFile "input/day1"
+part1 = print =<< sum <$> getInput
 
 part2h :: [Int] -> Int
-part2h = folder mempty 0 . cycle
-  where
-    folder :: Set Int -> Int -> [Int] -> Int
-    folder s i (x:xs)
-      | ix `Set.member` s = ix
-      | otherwise = folder (Set.insert ix s) ix xs
-
-      where ix = i + x
+part2h l = let (_,_,x) = findCycle id $ scanl1 (+) (cycle l) in x
 
 -- 77674
 part2 :: IO ()
-part2 =  print =<< (part2h . map pn . lines <$> readFile "input/day1")
+part2 =  print =<< part2h <$> getInput
