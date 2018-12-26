@@ -12,7 +12,7 @@ import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
 import           AoC                        (Parser, parseFile)
-import           Search                     (binSearch)
+import           Search                     (autoBinSearch)
 
 -- position=< 9,  1> velocity=< 0,  2>
 
@@ -67,7 +67,7 @@ part1 = do
   drawVecs $ vecMove n <$> vs
 
 part2' :: [Vec] -> Int
-part2' vs = binSearch checkBounds 0 100000
+part2' vs = autoBinSearch checkBounds
   where
     checkBounds n = comparing sizeAt (n+1) n
     sizeAt n = bounds $ originate (vecMove n <$> vs)

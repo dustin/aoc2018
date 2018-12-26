@@ -9,14 +9,13 @@ Portability : POSIX
 
 Things I use for searching space in AoC.
 -}
-module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, findCycle,
+module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, autoBinSearch, findCycle,
               findMin, findMax) where
 
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.PQueue.Min as Q
 import qualified Data.Set        as Set
-
 
 -- | Get the position of the start of the first cycle and the cycle length from a list.
 findCycle :: Ord b => (a -> b) -> [a] -> (Int,Int,a)
@@ -87,6 +86,16 @@ binSearch f l h
   where
     mid = l + (h-l) `div` 2
     v = f mid
+
+-- | A binary search with auto-discovering bounds.
+autoBinSearch :: Integral a => (a -> Ordering) -> a
+autoBinSearch f = go 0 0 (if dir == LT then 1 else -1)  where
+    dir = f 0
+    go p l o
+      | v == EQ = l
+      | v == dir = go l (l + o) (o * 10)
+      | otherwise = binSearch f (min p l) (max p l)
+      where v = f l
 
 -- | Find a local minimum.
 findMin :: Ord b => (a -> b) -> [a] -> a

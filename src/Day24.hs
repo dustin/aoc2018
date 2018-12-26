@@ -18,7 +18,7 @@ import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
 import           AoC                        (Parser, parseFile)
-import           Search                     (binSearch)
+import           Search                     (autoBinSearch)
 
 data Props = Props Text [Text]
 
@@ -172,7 +172,7 @@ increaseImmunity x = map incrim
         incrim a                                = a
 
 part2' :: [Army] -> Int
-part2' army = let ans = binSearch tryAt 1 100000 in
+part2' army = let ans = autoBinSearch tryAt in
                 scoreAt ans
   where scoreAt n = snd . fromJust . finalScore . fight $ increaseImmunity n army
         tryAt n = case finalScore . fight $ increaseImmunity n army of

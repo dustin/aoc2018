@@ -31,6 +31,10 @@ propBinSearch :: Int -> Int -> Int -> Bool
 propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
                         binSearch (flip compare b') a' c' == b'
 
+propAutoBinSearch :: Int -> Int -> Int -> Bool
+propAutoBinSearch a b c = let [_,b',_] = sort [a,b,c] in
+                            autoBinSearch (flip compare b') == b'
+
 
 testFindMin :: [TestTree]
 testFindMin = map (\(f, xs, want) -> testCase (show xs) $ assertEqual "" want (findMin f xs)) [
@@ -65,5 +69,6 @@ tests = [
   localOption (QC.QuickCheckTests 10000) $ testProperty "findMax" prop_max,
   testProperty "findMin is not minimum" prop_findMinNotMin,
 
-  testProperty "bin search" propBinSearch
+  testProperty "bin search" propBinSearch,
+  testProperty "auto bin search'" propAutoBinSearch
   ]

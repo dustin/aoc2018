@@ -15,7 +15,7 @@ import           Data.Tuple      (swap)
 import           Debug.Trace     (trace)
 
 import           AoC             (mdist2)
-import           Search          (binSearch, dijkstra')
+import           Search          (autoBinSearch, dijkstra')
 
 data Thing = Wall | Open | Elf Int | Goblin Int
 
@@ -264,10 +264,9 @@ part2 = do
   let nelves = length $ elves w
   putStrLn ("Initial elves: " <> show nelves)
 
-  let ans = binSearch (\i -> let (ok,w') = tilDeath w i nelves in
-                               trace ("@" <> show i <> " elves: " <> show (length $ elves w') <> "\n" <> show w') $
-                               if ok then GT
-                               else LT) 4 100
+  let ans = autoBinSearch (\i -> let (ok,w') = tilDeath w i nelves in
+                                   trace ("@" <> show i <> " elves: " <> show (length $ elves w') <> "\n" <> show w') $
+                                   if ok then GT else LT)
   let (r, w') = play w 0 (mkHit ans)
   let s = score w'
   putStrLn $ "final score after " <> show r <> " rounds: " <> show s
