@@ -11,6 +11,7 @@ instance NFData Vec where
 tests :: [Benchmark]
 tests = [
   env getInput $ \ ~vs -> bgroup "starpattern" [
-      bench "bounds" $ nf bounds vs
+      bench "bounds" $ nf bounds vs,
+      bench "part2" $ nf part2' vs
       ]
   ]
