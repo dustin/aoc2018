@@ -4,6 +4,7 @@ import           Test.Tasty
 
 import qualified ElfcodeTests
 
+import qualified Day1Tests
 import qualified Day10Tests
 import qualified Day11Tests
 import qualified Day15Tests
@@ -21,6 +22,7 @@ import qualified SearchTests
 
 tests :: [TestTree]
 tests = [
+  testGroup "day 1" Day1Tests.tests,
   testGroup "day 10" Day10Tests.tests,
   testGroup "day 11" Day11Tests.tests,
   testGroup "search" SearchTests.tests,
