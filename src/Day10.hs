@@ -11,6 +11,7 @@ import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
 import           AoC                        (Parser, parseFile)
+import Search (findMin)
 
 -- position=< 9,  1> velocity=< 0,  2>
 
@@ -58,17 +59,16 @@ drawVecs vs = let vs' = originate vs
                   mm = chunksOf (maxx+1) $ map snd $ sortOn (snd . fst) $ Map.toList $ Map.union (Map.fromList $ map (\(Vec p _) -> (p,'#')) vs') m in
                 mapM_ putStrLn mm
 
-findMin :: Ord b => (a -> b) -> [a] -> a
-findMin f (x:xs) = go xs x
-  where go [] r = r
-        go (x':xs') r
-          | f x' > f r = r
-          | otherwise = go xs' x'
-
 part1 :: IO ()
 part1 = do
   vs <- getInput
-  let vss = map (\n -> let vs' = originate (vecMove n <$> vs) in (n, bounds vs', vs')) [1..100000]
-  let (n,_,_) = findMin (\(_,b,_) -> b) vss
-  print n
+  let n = part2' vs  -- use part2 to compute part1
   drawVecs $ vecMove n <$> vs
+
+part2' :: [Vec] -> Int
+part2' vs = n
+  where (n,_,_) = findMin (\(_,b,_) -> b) vss
+        vss = map (\n' -> let vs' = originate (vecMove n' <$> vs) in (n', bounds vs', vs')) [1..100000]
+
+part2 :: IO ()
+part2 = print =<< part2' <$> getInput

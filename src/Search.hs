@@ -9,7 +9,8 @@ Portability : POSIX
 
 Things I use for searching space in AoC.
 -}
-module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, findCycle) where
+module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, findCycle,
+              findMin, findMax) where
 
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
@@ -86,3 +87,19 @@ binSearch f l h
   where
     mid = l + (h-l) `div` 2
     v = f mid
+
+-- | Find a local minimum.
+findMin :: Ord b => (a -> b) -> [a] -> a
+findMin f (x:xs) = go xs x
+  where go [] r = r
+        go (x':xs') r
+          | f x' > f r = r
+          | otherwise = go xs' x'
+
+-- | Find a local maximum.
+findMax :: Ord b => (a -> b) -> [a] -> a
+findMax f (x:xs) = go xs x
+  where go [] r = r
+        go (x':xs') r
+          | f x' < f r = r
+          | otherwise = go xs' x'
