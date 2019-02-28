@@ -34,7 +34,7 @@ propBinSearch a b c = let [a',b',c'] = sort [a,b,c] in
 
 propBinSearchM :: Int -> Int -> Int -> Property
 propBinSearchM a b c = monadicIO $ do
-  let [a',b',c'] = sort $ [a,b,c]
+  let [a',b',c'] = sort [a,b,c]
   r <- binSearchM (\x -> compare x <$> (run . getB) b') a' c'
   assert $ r == b'
 
