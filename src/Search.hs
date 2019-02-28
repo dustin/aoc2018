@@ -9,8 +9,11 @@ Portability : POSIX
 
 Things I use for searching space in AoC.
 -}
-module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, autoBinSearch, findCycle,
-              findMin, findMax) where
+
+{-# LANGUAGE LambdaCase #-}
+
+module Search (dijkstra', dijkstra, resolveDijkstra, binSearch, autoBinSearch, binSearchM,
+               findCycle, findMin, findMax) where
 
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
@@ -96,6 +99,19 @@ autoBinSearch f = go 0 0 (if dir == LT then 1 else -1)  where
       | v == dir = go l (l + o) (o * 10)
       | otherwise = binSearch f (min p l) (max p l)
       where v = f l
+
+-- | 'binSearchM' performs a binary search over a monadic action to
+-- find the boundary function where a function returns its highest
+-- 'LT' value.
+binSearchM :: (Integral a, Monad m) => (a -> m Ordering) -> a -> a -> m a
+binSearchM f l h
+  | h < l     = pure l
+  | otherwise = f mid >>= \case
+      GT -> binSearchM f l (mid-1)
+      LT -> binSearchM f (mid+1) h
+      _  -> pure mid
+  where
+    mid = l + (h-l) `div` 2
 
 -- | Find a local minimum.
 findMin :: Ord b => (a -> b) -> [a] -> a
