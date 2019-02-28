@@ -42,9 +42,9 @@ propBinSearchM a b c = monadicIO $ do
         getB = pure
 
 
-propAutoBinSearch :: Int -> Int -> Int -> Bool
-propAutoBinSearch a b c = let [_,b',_] = sort [a,b,c] in
-                            autoBinSearch (flip compare b') == b'
+-- autoBinSearch finds a value without having to be told bounds, so just needs one number.
+propAutoBinSearch :: Int -> Bool
+propAutoBinSearch a = autoBinSearch (flip compare a) == a
 
 
 testFindMin :: [TestTree]
