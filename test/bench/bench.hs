@@ -10,10 +10,12 @@ import           Day18Bench
 import           Day20Bench
 import           Day21Bench
 import           Day22Bench
+import           SearchBench
 
 main :: IO ()
 main = defaultMain [
   bgroup "aoc" AoCBench.tests,
+  bgroup "search" SearchBench.tests,
   bgroup "day10" Day10Bench.tests,
   bgroup "day15" Day15Bench.tests,
   bgroup "day18" Day18Bench.tests,
