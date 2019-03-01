@@ -92,7 +92,8 @@ binSearch f l h
 
 -- | A binary search with auto-discovering bounds.
 autoBinSearch :: Integral a => (a -> Ordering) -> a
-autoBinSearch f = go 0 0 (if dir == LT then 1 else -1)  where
+autoBinSearch f = go 0 0 (if dir == LT then 1 else -1)
+  where
     dir = f 0
     go p l o
       | v == EQ = l
