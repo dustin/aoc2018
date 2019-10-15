@@ -25,11 +25,7 @@ type Parser = Parsec Void Text
 
 -- | Load a file (e.g. "input/day24") with the given parser.
 parseFile :: Parser a -> String -> IO a
-parseFile f s = do
-  c <- pack <$> readFile s
-  case parse f s c of
-    (Left x)  -> fail (errorBundlePretty x)
-    (Right v) -> pure v
+parseFile f s = pack <$> readFile s >>= either (fail.errorBundlePretty) pure . parse f s
 
 -- | Parallel application of a function across elements of a tuple.
 zipt2 :: (a -> b -> c) -> (a,a) -> (b,b) -> (c,c)
