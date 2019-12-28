@@ -11,7 +11,7 @@ import           Test.Tasty.QuickCheck as QC
 import           Data.Text             (pack)
 import           Text.Megaparsec       (parse)
 
-import           AoC                   (parseFile)
+import           Advent.AoC            (parseFile)
 import           Elfcode
 
 getInput :: IO Program

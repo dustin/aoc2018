@@ -30,7 +30,7 @@ import           Text.Megaparsec.Char.Lexer (decimal)
 import           Control.DeepSeq            (NFData (..))
 import           GHC.Generics               (Generic)
 
-import           AoC                        (Parser)
+import           Advent.AoC                 (Parser)
 
 type Params = (Int,Int,Int)
 

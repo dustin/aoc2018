@@ -8,7 +8,7 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import           AoC                   (parseFile)
+import           Advent.AoC            (parseFile)
 import           Day21
 import           Elfcode
 

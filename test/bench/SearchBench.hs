@@ -2,7 +2,7 @@
 
 module SearchBench where
 
-import           Criterion (Benchmark, bench, whnf)
+import           Criterion (Benchmark, bench, env, nf, whnf)
 
 import           Search
 

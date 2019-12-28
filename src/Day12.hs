@@ -10,7 +10,7 @@ import           Data.Maybe           (fromMaybe)
 import           Text.Megaparsec      (some)
 import           Text.Megaparsec.Char (char, space)
 
-import           AoC                  (Parser, parseFile)
+import           Advent.AoC           (Parser, parseFile)
 
 type Pot = Bool
 

@@ -2,9 +2,9 @@
 
 module Day19 where
 
-import           Data.List (union)
+import           Data.List  (union)
 
-import           AoC       (parseFile)
+import           Advent.AoC (parseFile)
 
 import           Elfcode
 

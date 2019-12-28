@@ -17,7 +17,7 @@ import           GHC.Generics         (Generic)
 import           Text.Megaparsec      (between, sepBy)
 import           Text.Megaparsec.Char (char)
 
-import           AoC                  (Parser, parseFile)
+import           Advent.AoC           (Parser, parseFile)
 
 data Directions = Dirs [Dir] | Sub [[Directions]] deriving (Generic, Eq, Show)
 

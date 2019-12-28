@@ -10,7 +10,7 @@ import           Text.Megaparsec            (sepBy, some)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           AoC                        (Parser, parseFile)
+import           Advent.AoC                 (Parser, parseFile)
 
 import           Elfcode
 

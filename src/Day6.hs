@@ -2,7 +2,7 @@
 
 module Day6 where
 
-import           AoC             (mdist2)
+import           Advent.AoC      (mdist2)
 import qualified Data.Map.Strict as Map
 import           Data.Ord        (comparing)
 import           Data.Semigroup  ((<>))

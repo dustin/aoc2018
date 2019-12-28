@@ -10,7 +10,7 @@ import           Text.Megaparsec.Char.Lexer (decimal)
 import           Data.Functor               (($>))
 import           Data.List                  (sort)
 
-import           AoC                        (Parser, parseFile)
+import           Advent.AoC                 (Parser, parseFile)
 
 {-
 -- not a leap year...

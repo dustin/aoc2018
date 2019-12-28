@@ -9,7 +9,7 @@ import           Text.Megaparsec            (endBy, optional)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
-import           AoC                        (Parser, mdist4, parseFile)
+import           Advent.AoC                 (Parser, mdist4, parseFile)
 
 type XYZT = (Int,Int,Int,Int)
 

@@ -7,7 +7,7 @@ import qualified Data.Map.Strict            as Map
 import           Text.Megaparsec            (endBy)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           AoC                        (Parser, parseFile)
+import           Advent.AoC                 (Parser, parseFile)
 
 data Claim = Claim Int (Int,Int) (Int,Int) deriving (Show)
 

@@ -11,7 +11,7 @@ import qualified Data.Set             as Set
 import           Text.Megaparsec      (endBy)
 import           Text.Megaparsec.Char (letterChar)
 
-import           AoC                  (Parser, parseFile)
+import           Advent.AoC           (Parser, parseFile)
 
 -- B requires A
 data Requirement = Requirement Char Char deriving (Show)

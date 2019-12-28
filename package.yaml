@@ -1,4 +1,4 @@
-name:                aoc
+name:                aoc2018
 version:             0.1.0.0
 github:              "dustin/day1"
 license:             BSD3
@@ -21,6 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/dust
 
 dependencies:
 - base >= 4.7 && < 5
+- aoc
 
 library:
   source-dirs: src
@@ -50,7 +51,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - aoc
+    - aoc2018
     - containers
 
 tests:
@@ -62,7 +63,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - aoc
+    - aoc2018
     - array
     - QuickCheck
     - tasty
@@ -76,7 +77,7 @@ tests:
 benchmarks:
   aoc-bench:
     dependencies:
-    - aoc
+    - aoc2018
     - criterion
     - deepseq
     - megaparsec

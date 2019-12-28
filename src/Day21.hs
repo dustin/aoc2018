@@ -2,9 +2,9 @@
 
 module Day21 where
 
-import qualified Data.Set as Set
+import qualified Data.Set   as Set
 
-import           AoC      (parseFile)
+import           Advent.AoC (parseFile)
 import           Elfcode
 
 getInput :: IO Program

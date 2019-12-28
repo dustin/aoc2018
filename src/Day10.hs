@@ -11,8 +11,8 @@ import           Text.Megaparsec            (endBy)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
-import           AoC                        (Parser, parseFile)
-import           Search                     (autoBinSearch)
+import           Advent.AoC                 (Parser, parseFile)
+import           Advent.Search              (autoBinSearch)
 
 -- position=< 9,  1> velocity=< 0,  2>
 

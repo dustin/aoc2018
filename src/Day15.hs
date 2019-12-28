@@ -14,8 +14,8 @@ import qualified Data.Set        as Set
 import           Data.Tuple      (swap)
 import           Debug.Trace     (trace)
 
-import           AoC             (mdist2)
-import           Search          (autoBinSearch, dijkstra')
+import           Advent.AoC      (mdist2)
+import           Advent.Search   (autoBinSearch, dijkstra')
 
 data Thing = Wall | Open | Elf Int | Goblin Int
 
@@ -118,7 +118,7 @@ players = readingSort . flip ofType (\x -> isGoblin x || isElf x)
 bestMove :: World -> (Int,Int) -> Maybe (Int,Int)
 bestMove w p
   | not $ null $ adjacentEnemies w p = Nothing
-  | otherwise = let (m,_) = dijkstra' neighbors p (`elem` cands)
+  | otherwise = let (_,m,_) = dijkstra' neighbors p (`elem` cands)
                     cands = targets w p
                     targs = sort $ map (\(Just j,x) -> (j,x)) $ filter (\(j,_) -> isJust j) $
                             map (\t -> (Map.lookup t m,t)) cands in

@@ -8,8 +8,8 @@ import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
+import           Advent.Search         (dijkstra)
 import           Day22
-import           Search                (dijkstra)
 
 import qualified Data.Array            as A
 import qualified Data.Map.Strict       as Map
@@ -40,7 +40,7 @@ testExample = do
 testPathResolution :: Assertion
 testPathResolution = do
   let s = survey (10,10,510) (20,20)
-      Just (c,(st:path)) = dijkstra (neighbors s) ((0,0),Torch) ((10,10),Torch)
+      Just (c,(st:path)) = dijkstra (neighbors s) ((0,0),Torch) (== ((10,10),Torch))
 
   assertEqual "cost" 45 c
   assertEqual "path cost" 45 (pathCost st path)
@@ -55,7 +55,7 @@ testPathResolution = do
 testExampleP2 :: Assertion
 testExampleP2 = do
   let s = survey (10,10,510) (20,20)
-      Just (c,_) = dijkstra (neighbors s) ((0,0),Torch) ((10,10),Torch)
+      Just (c,_) = dijkstra (neighbors s) ((0,0),Torch) (== ((10,10),Torch))
 
   assertEqual "" 45 c
 

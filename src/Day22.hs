@@ -7,8 +7,8 @@ import           Data.List       (intercalate)
 import           Data.Map        (Map)
 import qualified Data.Map.Strict as Map
 
+import           Advent.Search   (dijkstra)
 import           Elfcode         (align)
-import           Search          (dijkstra)
 
 data Type = Rocky | Wet | Narrow deriving (Eq, Ord, Enum, Bounded, Show)
 
@@ -146,7 +146,7 @@ part2' :: Int
 part2' = let frm = ((0,0),Torch)
              to = ((9,731),Torch)
              s = survey (9,731,11109) (9 + (7*4), 731 + (7*4))
-             Just (n,_) = dijkstra (neighbors s) frm to in n
+             Just (n,_) = dijkstra (neighbors s) frm (== to) in n
 
 part2 :: IO ()
 part2 = print part2'

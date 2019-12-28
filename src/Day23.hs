@@ -9,7 +9,7 @@ import           Text.Megaparsec            (endBy)
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal, signed)
 
-import           AoC                        (Parser, mdist3, parseFile)
+import           Advent.AoC                 (Parser, mdist3, parseFile)
 
 type Pos = (Int,Int,Int)
 

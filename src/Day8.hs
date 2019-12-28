@@ -10,7 +10,7 @@ import qualified Data.Tree                  as Tree
 import           Text.Megaparsec.Char       (space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           AoC                        (Parser, parseFile)
+import           Advent.AoC                 (Parser, parseFile)
 
 readInput :: IO (Tree.Tree [Int])
 readInput =  readTree <$> map read <$> words <$> readFile "input/day8"

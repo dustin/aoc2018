@@ -17,8 +17,8 @@ import           Text.Megaparsec            (between, endBy, option, sepBy,
 import           Text.Megaparsec.Char       (alphaNumChar, space)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
-import           AoC                        (Parser, parseFile)
-import           Search                     (autoBinSearch)
+import           Advent.AoC                 (Parser, parseFile)
+import           Advent.Search              (autoBinSearch)
 
 data Props = Props Text [Text]
 
