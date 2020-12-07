@@ -6,12 +6,15 @@ import           Data.Semigroup       ((<>))
 
 import           Data.List            (sort, (\\))
 import qualified Data.Map.Strict      as Map
-import qualified Data.Set             as Set
+import           Data.Word            (Word32)
 
 import           Text.Megaparsec      (endBy)
 import           Text.Megaparsec.Char (letterChar)
 
 import           Advent.AoC           (Parser, parseFile)
+import qualified Advent.BitSet        as BS
+
+type CharSet = BS.BitSet Char Word32
 
 -- B requires A
 data Requirement = Requirement Char Char deriving (Show)
@@ -28,18 +31,21 @@ parseReq = Requirement <$ "Step " <*> letterChar
 readInput :: IO [Requirement]
 readInput = parseFile (parseReq `endBy` "\n") "input/day7"
 
+charSet :: [Char] -> CharSet
+charSet = BS.fromList ('A', 'Z')
+
 -- Figure out an order in which tasks can be performed.
-trav :: Set.Set Char -> Map.Map Char [Char] -> [Char]
-trav todo reqs = go todo mempty []
+trav :: CharSet -> Map.Map Char [Char] -> [Char]
+trav todo reqs = go todo (BS.bitSet ('A', 'Z')) []
   where
-    go :: Set.Set Char -> Set.Set Char -> [Char] -> [Char]
+    go :: CharSet -> CharSet -> [Char] -> [Char]
     go td done rv
-      | null td = reverse rv
-      | otherwise = let c = Set.findMin $ Set.filter ready td in
-                      go (Set.delete c td) (Set.insert c done) (c : rv)
+      | BS.null td = reverse rv
+      | otherwise = let c = BS.findMin $ BS.filter ready td in
+                      go (BS.delete c td) (BS.insert c done) (c : rv)
 
       where
-        ready c = all (`elem` done) $ Map.findWithDefault mempty c reqs
+        ready c = all (`BS.member` done) $ Map.findWithDefault mempty c reqs
 
 cost :: Char -> Int
 cost = (subtract 4) . fromEnum
@@ -76,13 +82,13 @@ complete tasks workers = go tasks 0
 
 part1 :: [Requirement] -> String
 part1 inp =
-  let s = Set.fromList $ concatMap (\(Requirement a b) -> [a, b]) inp
+  let s = charSet $ concatMap (\(Requirement a b) -> [a, b]) inp
       reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp in
     trav s reqs
 
 part2 :: [Requirement] -> Int
 part2 inp =
-  let s = Set.fromList $ concatMap (\(Requirement a b) -> [a, b]) inp
+  let s = charSet $ concatMap (\(Requirement a b) -> [a, b]) inp
       reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp
-      tasks = map (\c -> Task c (cost c) (Map.findWithDefault mempty c reqs)) (Set.toList s) in
+      tasks = map (\c -> Task c (cost c) (Map.findWithDefault mempty c reqs)) (BS.toList s) in
     complete tasks 5

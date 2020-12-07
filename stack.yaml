@@ -2,5 +2,8 @@ packages:
 - .
 extra-deps:
 - git: https://github.com/dustin/aoc.git
-  commit: b5745a067b077c6bfa99a4aa81bbd513e010f731
+  commit: f5c4cb1bda6aa031c0871ad0ec775c3e5bd6023b
 resolver: lts-14.20
+
+nix:
+  packages: [zlib]
