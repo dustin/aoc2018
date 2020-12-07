@@ -18,10 +18,12 @@ import qualified Day22Tests
 import qualified Day23Tests
 import qualified Day24Tests
 import qualified Day25Tests
+import qualified Day7Tests
 
 tests :: [TestTree]
 tests = [
   testGroup "day 1" Day1Tests.tests,
+  testGroup "day 7" Day7Tests.tests,
   testGroup "day 10" Day10Tests.tests,
   testGroup "day 11" Day11Tests.tests,
   testGroup "day 15" Day15Tests.tests,

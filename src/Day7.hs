@@ -74,26 +74,15 @@ complete tasks workers = go tasks 0
     go t n = let (w, t') = schedule t workers in
                go (filter ((/= Done) . state) t') (n+w)
 
--- OVXCKZBDEHINPFSTJLUYRWGAMQ
-part1 :: IO ()
-part1 = do
-  inp <- readInput
-
+part1 :: [Requirement] -> String
+part1 inp =
   let s = Set.fromList $ concatMap (\(Requirement a b) -> [a, b]) inp
+      reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp in
+    trav s reqs
 
-  let reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp
-
-  let l = trav s reqs
-
-  print l
-
--- 955
-part2 :: IO ()
-part2 = do
-  inp <- readInput
-
+part2 :: [Requirement] -> Int
+part2 inp =
   let s = Set.fromList $ concatMap (\(Requirement a b) -> [a, b]) inp
-  let reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp
-  let tasks = map (\c -> Task c (cost c) (Map.findWithDefault mempty c reqs)) (Set.toList s)
-
-  print $ complete tasks 5
+      reqs = Map.fromListWith (<>) $ map (\(Requirement a b) -> (b, [a])) inp
+      tasks = map (\c -> Task c (cost c) (Map.findWithDefault mempty c reqs)) (Set.toList s) in
+    complete tasks 5
